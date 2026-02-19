@@ -1,1 +1,61 @@
 // app global css in SCSS form
+@import './themes.scss';
+
+// FIX FOR AUTO CONPLETE COLOR ON DARK THEME : START
+
+@media (prefers-color-scheme: dark) {
+  ::spelling-error {
+    color: #fff !important;
+    text-decoration: underline wavy red;
+  }
+}
+
+.q-input input:-webkit-autofill,
+.q-input textarea:-webkit-autofill,
+.q-input select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000;
+}
+
+.q-input input:-moz-ui-invalid,
+.q-input textarea:-moz-ui-invalid,
+.q-input select:-moz-ui-invalid,
+.body--dark .q-input input:-moz-ui-invalid,
+.body--dark .q-input textarea:-moz-ui-invalid,
+.body--dark .q-input select:-moz-ui-invalid {
+  background-color: transparent !important;
+}
+
+.body--dark .q-input input:-webkit-autofill,
+.body--dark .q-input textarea:-webkit-autofill,
+.body--dark .q-input select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px var(--q-dark) inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff;
+}
+
+// FIX FOR AUTO CONPLETE COLOR ON DARK THEME : END
+
+.q-table__control .q-btn {
+  height: 40px;
+}
+
+img.gravatar {
+  border: 2px solid var(--q-primary);
+  border-radius: 10px;
+}
+
+td a {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.q-inner-loading {
+  z-index: 99;
+}
+
+.text-pre-line {
+  white-space: pre-line;
+}

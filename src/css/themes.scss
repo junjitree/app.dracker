@@ -1,0 +1,83 @@
+body[theme='tokyonight'] {
+  --q-dark-page: #1a1b26;
+  --q-dark: #24283b;
+
+  --q-primary: #bb9af7;
+  --q-secondary: #bb9af7;
+  --q-accent: #e0af68;
+
+  --q-positive: #9ece6a;
+  --q-negative: #f7768e;
+  --q-info: #73daca;
+  --q-warning: #e0af68;
+
+  --q-text-dark-page: #c0caf5;
+  --q-text-dark: #c0caf5;
+
+  --q-hover: #414868;
+  --q-focus: #73daca;
+  --q-active: #7aa2f7;
+}
+
+body[theme='monokai'] {
+  --q-dark-page: #272822;
+  --q-dark: #3c3e34;
+
+  --q-primary: #a6e22e;
+  --q-secondary: #66d9ef;
+  --q-accent: #fd971f;
+
+  --q-positive: #a6e22e;
+  --q-negative: #f92672;
+  --q-info: #66d9ef;
+  --q-warning: #e6db74;
+
+  --q-text-dark-page: #f8f8f2;
+  --q-text-dark: #f8f8f2;
+
+  --q-hover: #494943;
+  --q-focus: #f92672;
+  --q-active: #a6e22e;
+}
+
+body[theme='vscode'] {
+  --q-dark-page: #1e1e1e;
+  --q-dark: #252526;
+
+  --q-primary: #4fc1ff;
+  --q-secondary: #c586c0;
+  --q-accent: #ce9178;
+
+  --q-positive: #6a9955;
+  --q-negative: #f44747;
+  --q-info: #569cd6;
+  --q-warning: #dcdcaa;
+
+  --q-text-dark-page: #d4d4d4;
+  --q-text-dark: #cccccc;
+
+  --q-hover: #3c3c3c;
+  --q-focus: #569cd6;
+  --q-active: #569cd6;
+}
+
+body[theme='sakura'] {
+  --q-dark-page: #1c001a;
+  --q-dark: #2d0020;
+
+  --q-primary: #d685ad;
+  --q-secondary: #d685ad;
+  --q-accent: #f2a6b4;
+
+  --q-positive: #c2d89e;
+  --q-negative: #e8a8b1;
+  --q-info: #b3d1e2;
+  --q-warning: #f7d794;
+
+  --q-text-dark-page: #7b586e;
+  --q-text-dark: #7b586e;
+
+  --q-hover: #f0e6e8;
+  --q-focus: #f2a6b4;
+  --q-active: #e393a5;
+}

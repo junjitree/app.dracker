@@ -1,17 +1,17 @@
 <template>
   <div class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center">
     <div>
-      <div style="font-size: 30vh">404</div>
+      <h1>404: Not Found</h1>
 
-      <div class="text-h2" style="opacity: 0.4">Oops. Nothing here...</div>
+      <h3 style="opacity: 0.4">I think you're lost</h3>
 
       <q-btn
-        class="q-mt-xl"
+        class="q-mt-md"
         color="white"
         text-color="blue"
         unelevated
         to="/"
-        label="Go Home"
+        label="Go Back Home"
         no-caps
       />
     </div>

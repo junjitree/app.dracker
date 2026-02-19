@@ -33,7 +33,7 @@ export default defineConfigWithVueTs(
    * pluginVue.configs["flat/recommended"]
    *   -> Above, plus rules to enforce subjective community defaults to ensure consistency.
    */
-  pluginVue.configs['flat/essential'],
+  pluginVue.configs['flat/recommended'],
 
   {
     files: ['**/*.ts', '**/*.vue'],
@@ -63,10 +63,10 @@ export default defineConfigWithVueTs(
 
     // add your custom rules here
     rules: {
-      'prefer-promise-reject-errors': 'off',
-
       // allow debugger during development only
       'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+
+      'prefer-promise-reject-errors': 'off',
     },
   },
 
