@@ -21,10 +21,11 @@ const routes: RouteRecordRaw[] = [
     meta: { auth: true },
     children: [
       { path: '/pings', component: () => import('pages/pings/IndexPage.vue') },
+      { path: '/pings/:id', component: () => import('pages/pings/UpdatePage.vue') },
       { path: '/profile', component: () => import('pages/profile/IndexPage.vue') },
       { path: '/tokens', component: () => import('pages/tokens/IndexPage.vue') },
       { path: '/trackers', component: () => import('pages/trackers/IndexPage.vue') },
-      { path: '/trackers/:tracker_id', component: () => import('pages/trackers/UpdatePage.vue') },
+      { path: '/trackers/:id', component: () => import('pages/trackers/UpdatePage.vue') },
     ],
   },
 

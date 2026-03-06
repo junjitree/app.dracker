@@ -90,7 +90,7 @@ const defaultData: Payload = {
   desc: '',
 };
 
-const id = ref(parseInt(route.params.tracker_id?.toString() || '0'));
+const id = ref(parseInt(route.params.id?.toString() || '0'));
 const qrValue = computed(() => {
   return `http://${window.location.host}/_${data.value.slug}`;
 });
