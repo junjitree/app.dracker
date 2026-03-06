@@ -14,7 +14,9 @@
         >
           <div class="login-inner">
             <div class="text-center q-mb-xl">
-              <img :alt="appName" src="~assets/logo.svg" width="20%" />
+              <h4 class="q-ma-none">
+                {{ appName }}
+              </h4>
             </div>
             <router-view />
           </div>
@@ -25,12 +27,12 @@
 </template>
 
 <script setup lang="ts">
-import UpdateBanner from 'components/UpdateBanner.vue'
-import { ref } from 'vue'
-import { useQuasar } from 'quasar'
+import UpdateBanner from 'components/UpdateBanner.vue';
+import { ref } from 'vue';
+import { useQuasar } from 'quasar';
 
-const appName = ref(process.env.APP_NAME)
-const $q = useQuasar()
+const appName = ref(process.env.APP_NAME);
+const $q = useQuasar();
 </script>
 
 <style scoped>
