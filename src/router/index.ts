@@ -42,7 +42,7 @@ export default defineRouter(async (/* { store, ssrContext } */) => {
       return next('/trackers');
     }
 
-    if (!to.meta.auth && authStore.user && !to.meta.not_found) {
+    if (!to.meta.auth && authStore.user && !to.meta.not_found && !to.meta.no_redirect) {
       return next('/dashboard');
     }
 

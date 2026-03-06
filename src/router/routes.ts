@@ -10,7 +10,11 @@ const routes: RouteRecordRaw[] = [
       { path: 'signup', component: () => import('pages/public/SignupPage.vue') },
       { path: 'password', component: () => import('pages/public/password/SetPage.vue') },
       { path: 'password/forgot', component: () => import('pages/public/password/ForgotPage.vue') },
-      { path: '_:slug', component: () => import('pages/public/PingPage.vue') },
+      {
+        path: '_:slug',
+        meta: { no_redirect: true },
+        component: () => import('pages/public/PingPage.vue'),
+      },
     ],
   },
 
