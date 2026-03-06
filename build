@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+git pull && npm i && npm run build
+mv dist/_spa dist/spa_old
+mv dist/spa dist/_spa
+rm -rf dist/spa_old
