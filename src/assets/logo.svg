@@ -7,16 +7,13 @@
 </linearGradient>
 </defs>
 
-<!-- app icon background -->
-<rect width="256" height="256" rx="56" fill="#0A0F1F"/>
-
 <!-- compass ring -->
 <circle cx="128" cy="128" r="72"
 stroke="url(#gradA)"
 stroke-width="12"
 fill="none"/>
 
-<!-- minimalist compass needle -->
+<!-- compass needle -->
 <polygon points="128,70 156,128 128,186 100,128"
 fill="url(#gradA)"/>
 
