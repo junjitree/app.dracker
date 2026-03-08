@@ -14,9 +14,7 @@
         >
           <div class="login-inner">
             <div class="text-center q-mb-xl">
-              <h4 class="q-ma-none">
-                {{ appName }}
-              </h4>
+              <img :alt="appName" src="~assets/logo.svg" width="20%" />
             </div>
             <router-view />
           </div>
