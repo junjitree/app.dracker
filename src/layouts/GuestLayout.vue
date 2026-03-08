@@ -14,7 +14,7 @@
         >
           <div class="login-inner">
             <div class="text-center q-mb-xl">
-              <img :alt="appName" src="~assets/logo.svg" width="20%" />
+              <img :alt="appName" src="~assets/logo.svg" width="50%" />
             </div>
             <router-view />
           </div>
