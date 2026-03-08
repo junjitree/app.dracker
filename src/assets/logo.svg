@@ -1,20 +1,26 @@
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <path
-    d="M60 140 V60 C60 40 140 40 140 80 C140 100 120 120 100 120 H60"
-    fill="none"
-    stroke="#1A365D"
-    stroke-width="12"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
 
-  <circle cx="100" cy="120" r="8" fill="#1A365D" />
+<defs>
+<linearGradient id="gradA" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#5B8CFF"/>
+<stop offset="100%" stop-color="#6EE7F9"/>
+</linearGradient>
+</defs>
 
-  <path
-    d="M45 85 Q30 100 45 115"
-    fill="none"
-    stroke="#F59E0B"
-    stroke-width="8"
-    stroke-linecap="round"
-  />
+<!-- app icon background -->
+<rect width="256" height="256" rx="56" fill="#0A0F1F"/>
+
+<!-- compass ring -->
+<circle cx="128" cy="128" r="72"
+stroke="url(#gradA)"
+stroke-width="12"
+fill="none"/>
+
+<!-- minimalist compass needle -->
+<polygon points="128,70 156,128 128,186 100,128"
+fill="url(#gradA)"/>
+
+<!-- center hub -->
+<circle cx="128" cy="128" r="10" fill="#FFFFFF"/>
+
 </svg>
