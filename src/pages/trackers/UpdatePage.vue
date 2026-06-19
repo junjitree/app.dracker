@@ -163,7 +163,7 @@ const drawCanvas = async () => {
 
   let qrSource: HTMLCanvasElement | null = null;
   for (let i = 0; i < 30; i++) {
-    qrSource = document.querySelector('canvas#qrcode') as HTMLCanvasElement;
+    qrSource = document.querySelector<HTMLCanvasElement>('canvas#qrcode');
     if (qrSource && qrSource.width > 0) break;
     await nextTick();
   }
