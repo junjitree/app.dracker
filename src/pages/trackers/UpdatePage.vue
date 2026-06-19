@@ -25,7 +25,10 @@
       </div>
 
       <div v-if="data.slug" class="col-12 q-pa-md flex flex-center">
-        <div ref="qrContainer" style="max-width: 300px; width: 100%" />
+        <div
+          ref="qrContainer"
+          style="max-width: 300px; width: 100%; border-radius: 50%; border: 8px solid #1A365D; overflow: hidden; line-height: 0"
+        />
       </div>
 
       <div v-if="data.slug" class="col-12 q-pa-md">
@@ -79,21 +82,37 @@ const disable = ref(false);
 const data = ref(defaultData);
 const endpoint = `/v1/trackers`;
 
+const randomPastel = () => {
+  const h = Math.floor(Math.random() * 360);
+  return `hsl(${h}, 65%, 75%)`;
+};
+
+const color1 = randomPastel();
+const color2 = randomPastel();
+
 const qrCode = new QRCodeStyling({
   width: 300,
   height: 300,
+  type: 'canvas',
   shape: 'circle',
   data: '',
   dotsOptions: {
     type: 'rounded',
-    color: '#1A365D',
+    gradient: {
+      type: 'radial',
+      rotation: 0,
+      colorStops: [
+        { offset: 0, color: color1 },
+        { offset: 1, color: color2 },
+      ],
+    },
   },
   cornersSquareOptions: {
     type: 'extra-rounded',
-    color: '#1A365D',
+    color: color2,
   },
   cornersDotOptions: {
-    color: '#1A365D',
+    color: color1,
   },
   backgroundOptions: {
     color: '#ffffff',
