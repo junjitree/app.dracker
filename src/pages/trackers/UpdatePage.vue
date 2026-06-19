@@ -37,22 +37,16 @@
               background: meshGradient,
             }"
           />
-          <svg
-            viewBox="0 0 360 360"
-            style="position: relative; width: 100%; display: block; pointer-events: none"
-          >
-            <circle cx="180" cy="180" r="165" fill="none" stroke="#1a365d" stroke-width="30" />
-            <defs>
-              <path
-                id="ringPath"
-                d="M 180,180 m 0,-165 a 165,165 0 1,1 0,330 a 165,165 0 1,1 0,-330"
-                fill="none"
-              />
-            </defs>
-            <text fill="#ffffff" font-size="16" font-weight="600" letter-spacing="4">
-              <textPath href="#ringPath">{{ ringText }}</textPath>
-            </text>
-          </svg>
+          <canvas
+            ref="ringCanvas"
+            style="
+              position: relative;
+              width: 100%;
+              height: auto;
+              display: block;
+              pointer-events: none;
+            "
+          />
         </div>
       </div>
 
@@ -112,6 +106,7 @@ const qrValue = computed(
   () => `${window.location.protocol}//${window.location.host}/_${data.value.slug}`,
 );
 const qrContainer = ref<HTMLElement | null>(null);
+const ringCanvas = ref<HTMLCanvasElement | null>(null);
 const loading = ref(false);
 const disable = ref(false);
 const data = ref(defaultData);
@@ -120,8 +115,8 @@ const endpoint = `/v1/trackers`;
 // navy ring carrying the "scan" call-to-action text
 const RING = 30; // ring width in native canvas px (qr is 300 -> total 360)
 const RING_TEXT = 'SCAN TO PING • ';
-const ringText = RING_TEXT.repeat(6);
-const ringInset = `${(RING / (300 + RING * 2)) * 100}%`;
+const TOTAL = 300 + RING * 2; // 360 native canvas size incl. ring
+const ringInset = `${(RING / TOTAL) * 100}%`;
 
 const corners = [
   { x: 0.15, y: 0.15 },
@@ -239,37 +234,56 @@ const onSubmit = () => {
     });
 };
 
-// draw repeating call-to-action text curved along the ring centerline
+// draw the call-to-action text curved evenly around the full ring.
+// fits a whole number of phrase repeats and stretches spacing so the
+// loop closes seamlessly (no cut-off / overlap at the seam).
 const drawRingText = (ctx: CanvasRenderingContext2D, size: number) => {
-  const cx = size / 2;
-  const cy = size / 2;
   const radius = size / 2 - RING / 2;
   const fontSize = 16;
-  const letterSpacing = 4;
+  const baseSpacing = 4;
 
   ctx.save();
   ctx.fillStyle = '#ffffff';
   ctx.font = `600 ${fontSize}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.translate(cx, cy);
+  ctx.translate(size / 2, size / 2);
+
+  const advance = (ch: string) => ctx.measureText(ch).width + baseSpacing;
+  const unitWidth = [...RING_TEXT].reduce((w, ch) => w + advance(ch), 0);
+  const circumference = 2 * Math.PI * radius;
+  const reps = Math.max(1, Math.round(circumference / unitWidth));
+  const text = RING_TEXT.repeat(reps);
+  const naturalWidth = [...text].reduce((w, ch) => w + advance(ch), 0);
+  // distribute the leftover (or overflow) evenly across every glyph
+  const extraPerChar = (circumference - naturalWidth) / text.length;
 
   let angle = -Math.PI / 2; // start at top
-  const end = angle + Math.PI * 2;
-  let i = 0;
-  while (angle < end) {
-    const ch = RING_TEXT[i % RING_TEXT.length] ?? ' ';
-    const charAngle = (ctx.measureText(ch).width + letterSpacing) / radius;
-    if (angle + charAngle > end) break;
+  for (const ch of text) {
+    const charAngle = (advance(ch) + extraPerChar) / radius;
     ctx.save();
     ctx.rotate(angle + charAngle / 2);
     ctx.translate(0, -radius);
     ctx.fillText(ch, 0, 0);
     ctx.restore();
     angle += charAngle;
-    i++;
   }
   ctx.restore();
+};
+
+// render the navy ring + curved text onto a transparent overlay canvas
+const renderRing = (canvas: HTMLCanvasElement) => {
+  canvas.width = TOTAL;
+  canvas.height = TOTAL;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.clearRect(0, 0, TOTAL, TOTAL);
+  ctx.beginPath();
+  ctx.arc(TOTAL / 2, TOTAL / 2, TOTAL / 2 - RING / 2, 0, Math.PI * 2);
+  ctx.strokeStyle = '#1A365D';
+  ctx.lineWidth = RING;
+  ctx.stroke();
+  drawRingText(ctx, TOTAL);
 };
 
 const downloadAsPng = () => {
@@ -324,6 +338,10 @@ watch(qrContainer, (el) => {
     qrCode.append(el);
     void qrCode.update({ data: qrValue.value });
   }
+});
+
+watch(ringCanvas, (el) => {
+  if (el) renderRing(el);
 });
 
 onBeforeMount(async () => {
