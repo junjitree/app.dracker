@@ -317,7 +317,7 @@ const qrOptions = (size: number, data: string) => ({
   height: size,
   type: 'canvas' as const,
   shape: 'circle' as const,
-  margin: Math.round((10 * size) / QR_SIZE),
+  margin: Math.round((4 * size) / QR_SIZE), // small quiet zone; QR fills most of the inner circle
   data,
   dotsOptions: { type: 'rounded' as const, color: ink.value },
   cornersSquareOptions: { type: 'extra-rounded' as const, color: ink.value },
