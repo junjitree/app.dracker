@@ -40,12 +40,16 @@
         <div class="qr-frame" style="position: relative; width: 100%; max-width: 360px">
           <div
             ref="qrContainer"
+            class="qr-disc"
             :style="{
               position: 'absolute',
               inset: ringInset,
               borderRadius: '50%',
               overflow: 'hidden',
               lineHeight: '0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               background: meshGradient,
             }"
           />
@@ -164,7 +168,9 @@ const data = ref(defaultData);
 const endpoint = `/v1/trackers`;
 
 // navy ring carrying the "scan" call-to-action text
-const QR_SIZE = 300; // on-screen QR canvas size (px)
+const QR_SIZE = 300; // inner circle diameter (px)
+const INSCRIBE = 1 / Math.SQRT2; // square inscribed in the inner circle (~0.7071)
+const QR_FIT = Math.floor(QR_SIZE * INSCRIBE); // square QR side that fits w/o corner clipping
 const RING = 30; // ring width in native canvas px (qr is 300 -> total 360)
 const RING_TEXT = 'SCAN TO PING • ';
 const BASE_FONT = 16; // ring text size at 1x
@@ -316,8 +322,7 @@ const qrOptions = (size: number, data: string) => ({
   width: size,
   height: size,
   type: 'canvas' as const,
-  shape: 'circle' as const,
-  margin: Math.round((4 * size) / QR_SIZE), // small quiet zone; QR fills most of the inner circle
+  margin: Math.round(size * 0.06), // proper quiet zone around the square QR
   data,
   dotsOptions: { type: 'rounded' as const, color: ink.value },
   cornersSquareOptions: { type: 'extra-rounded' as const, color: ink.value },
@@ -326,7 +331,7 @@ const qrOptions = (size: number, data: string) => ({
   qrOptions: { errorCorrectionLevel: 'H' as const },
 });
 
-const qrCode = new QRCodeStyling(qrOptions(QR_SIZE, ''));
+const qrCode = new QRCodeStyling(qrOptions(QR_FIT, ''));
 
 const onSubmit = () => {
   loading.value = true;
@@ -418,10 +423,11 @@ const renderRing = (canvas: HTMLCanvasElement) => {
 // composite the full tag (mesh + QR + ring + text) onto one canvas at `scale`.
 // ring width, font and margin all scale together so the export looks identical
 // to the on-screen version, just at higher resolution.
-const buildComposite = (source: CanvasImageSource, srcSize: number, scale: number) => {
+const buildComposite = (source: CanvasImageSource, qrPx: number, scale: number) => {
   const ring = RING * scale;
   const pad = EXPORT_PAD * scale;
-  const circle = srcSize + ring * 2; // the tag artwork
+  const inner = QR_SIZE * scale; // inner circle diameter
+  const circle = inner + ring * 2; // the tag artwork
   const size = circle + pad * 2; // full canvas incl. transparent printer gap
   const offscreen = document.createElement('canvas');
   offscreen.width = size;
@@ -439,7 +445,9 @@ const buildComposite = (source: CanvasImageSource, srcSize: number, scale: numbe
   ctx.clip();
 
   drawMeshToCanvas(ctx, circle);
-  ctx.drawImage(source, ring, ring);
+  // center the square QR inside the inner circle (inscribed, corners untouched)
+  const qrOffset = ring + (inner - qrPx) / 2;
+  ctx.drawImage(source, qrOffset, qrOffset);
   ctx.restore();
 
   // navy ring
@@ -457,13 +465,13 @@ const downloadAsPng = async () => {
   if (!data.value.slug) return;
 
   // render a fresh high-resolution QR (browser-side only, nothing stored server-side)
-  const srcSize = QR_SIZE * EXPORT_SCALE;
-  const hiRes = new QRCodeStyling(qrOptions(srcSize, qrValue.value));
+  const qrPx = QR_FIT * EXPORT_SCALE;
+  const hiRes = new QRCodeStyling(qrOptions(qrPx, qrValue.value));
   const raw = await hiRes.getRawData('png');
   if (!(raw instanceof Blob)) return;
   const bitmap = await createImageBitmap(raw);
 
-  const offscreen = buildComposite(bitmap, srcSize, EXPORT_SCALE);
+  const offscreen = buildComposite(bitmap, qrPx, EXPORT_SCALE);
   if (!offscreen) return;
 
   const link = document.createElement('a');
@@ -502,8 +510,9 @@ onBeforeMount(async () => {
 </script>
 
 <style scoped>
-.qr-frame :deep(canvas) {
-  width: 100%;
+/* the square QR is inscribed in the inner circle (1/sqrt2 of its width), centered */
+.qr-frame :deep(.qr-disc canvas) {
+  width: 70.71%;
   height: auto;
   display: block;
 }
