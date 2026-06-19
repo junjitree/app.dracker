@@ -47,9 +47,6 @@
               borderRadius: '50%',
               overflow: 'hidden',
               lineHeight: '0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               background: meshGradient,
             }"
           />
@@ -168,9 +165,10 @@ const data = ref(defaultData);
 const endpoint = `/v1/trackers`;
 
 // navy ring carrying the "scan" call-to-action text
-const QR_SIZE = 300; // inner circle diameter (px)
-const INSCRIBE = 1 / Math.SQRT2; // square inscribed in the inner circle (~0.7071)
-const QR_FIT = Math.floor(QR_SIZE * INSCRIBE); // square QR side that fits w/o corner clipping
+const QR_SIZE = 300; // inner circle diameter (px) = QR canvas size
+// quiet-zone margin sized so the square QR's module corners reach the inner
+// circle (max fill); the blank corner margins get clipped by the circle.
+const QUIET = (1 - 1 / Math.SQRT2) / 2; // ~0.1464
 const RING = 30; // ring width in native canvas px (qr is 300 -> total 360)
 const RING_TEXT = 'SCAN TO PING • ';
 const BASE_FONT = 16; // ring text size at 1x
@@ -322,7 +320,7 @@ const qrOptions = (size: number, data: string) => ({
   width: size,
   height: size,
   type: 'canvas' as const,
-  margin: Math.round(size * 0.06), // proper quiet zone around the square QR
+  margin: Math.round(size * QUIET), // quiet zone; modules inscribe the inner circle
   data,
   dotsOptions: { type: 'rounded' as const, color: ink.value },
   cornersSquareOptions: { type: 'extra-rounded' as const, color: ink.value },
@@ -331,7 +329,7 @@ const qrOptions = (size: number, data: string) => ({
   qrOptions: { errorCorrectionLevel: 'H' as const },
 });
 
-const qrCode = new QRCodeStyling(qrOptions(QR_FIT, ''));
+const qrCode = new QRCodeStyling(qrOptions(QR_SIZE, ''));
 
 const onSubmit = () => {
   loading.value = true;
@@ -465,7 +463,7 @@ const downloadAsPng = async () => {
   if (!data.value.slug) return;
 
   // render a fresh high-resolution QR (browser-side only, nothing stored server-side)
-  const qrPx = QR_FIT * EXPORT_SCALE;
+  const qrPx = QR_SIZE * EXPORT_SCALE;
   const hiRes = new QRCodeStyling(qrOptions(qrPx, qrValue.value));
   const raw = await hiRes.getRawData('png');
   if (!(raw instanceof Blob)) return;
@@ -510,9 +508,9 @@ onBeforeMount(async () => {
 </script>
 
 <style scoped>
-/* the square QR is inscribed in the inner circle (1/sqrt2 of its width), centered */
+/* QR fills the disc; blank quiet-zone corners are clipped by the circle */
 .qr-frame :deep(.qr-disc canvas) {
-  width: 70.71%;
+  width: 100%;
   height: auto;
   display: block;
 }
