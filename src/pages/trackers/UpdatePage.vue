@@ -27,7 +27,15 @@
       <div v-if="data.slug" class="col-12 q-pa-md flex flex-center">
         <div
           ref="qrContainer"
-          style="max-width: 300px; width: 100%; border-radius: 50%; border: 8px solid #1A365D; overflow: hidden; line-height: 0"
+          :style="{
+            maxWidth: '300px',
+            width: '100%',
+            borderRadius: '50%',
+            border: '8px solid #1A365D',
+            overflow: 'hidden',
+            lineHeight: '0',
+            background: meshGradient,
+          }"
         />
       </div>
 
@@ -84,11 +92,40 @@ const endpoint = `/v1/trackers`;
 
 const randomPastel = () => {
   const h = Math.floor(Math.random() * 360);
-  return `hsl(${h}, 65%, 75%)`;
+  return `hsl(${h}, 70%, 72%)`;
 };
 
-const color1 = randomPastel();
-const color2 = randomPastel();
+const colors = Array.from({ length: 4 }, randomPastel);
+
+// mesh gradient: 4 radial spots at corners blending together
+const meshGradient = [
+  `radial-gradient(circle at 15% 15%, ${colors[0]}, transparent 60%)`,
+  `radial-gradient(circle at 85% 15%, ${colors[1]}, transparent 60%)`,
+  `radial-gradient(circle at 85% 85%, ${colors[2]}, transparent 60%)`,
+  `radial-gradient(circle at 15% 85%, ${colors[3]}, transparent 60%)`,
+  'white',
+].join(', ');
+
+const drawMeshToCanvas = (ctx: CanvasRenderingContext2D, size: number) => {
+  const spots = [
+    { x: 0.15, y: 0.15, color: colors[0] },
+    { x: 0.85, y: 0.15, color: colors[1] },
+    { x: 0.85, y: 0.85, color: colors[2] },
+    { x: 0.15, y: 0.85, color: colors[3] },
+  ];
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  for (const spot of spots) {
+    const grad = ctx.createRadialGradient(
+      spot.x * size, spot.y * size, 0,
+      spot.x * size, spot.y * size, size * 0.65,
+    );
+    grad.addColorStop(0, spot.color);
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+  }
+};
 
 const qrCode = new QRCodeStyling({
   width: 300,
@@ -98,24 +135,17 @@ const qrCode = new QRCodeStyling({
   data: '',
   dotsOptions: {
     type: 'rounded',
-    gradient: {
-      type: 'radial',
-      rotation: 0,
-      colorStops: [
-        { offset: 0, color: color1 },
-        { offset: 1, color: color2 },
-      ],
-    },
+    color: '#1A365D',
   },
   cornersSquareOptions: {
     type: 'extra-rounded',
-    color: color2,
+    color: '#1A365D',
   },
   cornersDotOptions: {
-    color: color1,
+    color: '#1A365D',
   },
   backgroundOptions: {
-    color: '#ffffff',
+    color: 'rgba(0,0,0,0)',
   },
   qrOptions: {
     errorCorrectionLevel: 'H',
@@ -155,8 +185,20 @@ const downloadAsPng = () => {
   const ctx = offscreen.getContext('2d');
   if (!ctx) return;
 
+  // clip to circle
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, size / 2 - borderWidth, 0, Math.PI * 2);
+  ctx.clip();
+
+  // draw mesh gradient background
+  drawMeshToCanvas(ctx, size);
+
+  // draw QR (transparent bg) on top
   ctx.drawImage(source, borderWidth, borderWidth);
 
+  ctx.restore();
+
+  // border ring
   ctx.beginPath();
   ctx.arc(size / 2, size / 2, size / 2 - borderWidth / 2, 0, Math.PI * 2);
   ctx.strokeStyle = '#1A365D';
