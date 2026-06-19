@@ -107,12 +107,24 @@ const corners = [
   { x: 0.15, y: 0.85 },
 ];
 
-const randomPastel = () => {
-  const h = Math.floor(Math.random() * 360);
-  return `hsl(${h}, 70%, 72%)`;
+// Tokyo Night accent palette
+const tokyoNight = [
+  '#7aa2f7', // blue
+  '#7dcfff', // cyan
+  '#bb9af7', // purple
+  '#f7768e', // red/magenta
+  '#9ece6a', // green
+  '#ff9e64', // orange
+  '#e0af68', // yellow
+  '#2ac3de', // teal
+];
+
+const pickTokyoColors = () => {
+  const pool = [...tokyoNight].sort(() => Math.random() - 0.5);
+  return corners.map((_, i) => pool[i % pool.length] as string);
 };
 
-const colors = ref<string[]>(corners.map(randomPastel));
+const colors = ref<string[]>(pickTokyoColors());
 
 // mesh gradient: 4 radial spots at corners blending together
 const meshGradient = computed(() =>
@@ -126,7 +138,7 @@ const meshGradient = computed(() =>
 );
 
 const randomizeColors = () => {
-  colors.value = corners.map(randomPastel);
+  colors.value = pickTokyoColors();
 };
 
 const drawMeshToCanvas = (ctx: CanvasRenderingContext2D, size: number) => {
