@@ -165,9 +165,12 @@ const data = ref(defaultData);
 const endpoint = `/v1/trackers`;
 
 // navy ring carrying the "scan" call-to-action text
+const QR_SIZE = 300; // on-screen QR canvas size (px)
 const RING = 30; // ring width in native canvas px (qr is 300 -> total 360)
 const RING_TEXT = 'SCAN TO PING • ';
-const TOTAL = 300 + RING * 2; // 360 native canvas size incl. ring
+const BASE_FONT = 16; // ring text size at 1x
+const EXPORT_SCALE = 4; // download render multiplier for print-quality output
+const TOTAL = QR_SIZE + RING * 2; // 360 native canvas size incl. ring
 const ringInset = `${(RING / TOTAL) * 100}%`;
 
 const corners = [
@@ -307,31 +310,23 @@ const drawMeshToCanvas = (ctx: CanvasRenderingContext2D, size: number) => {
   });
 };
 
-const qrCode = new QRCodeStyling({
-  width: 300,
-  height: 300,
-  type: 'canvas',
-  shape: 'circle',
-  margin: 10, // quiet zone so the ring/mesh never crowds the finder pattern
-  data: '',
-  dotsOptions: {
-    type: 'rounded',
-    color: ink.value,
-  },
-  cornersSquareOptions: {
-    type: 'extra-rounded',
-    color: ink.value,
-  },
-  cornersDotOptions: {
-    color: ink.value,
-  },
-  backgroundOptions: {
-    color: 'rgba(0,0,0,0)',
-  },
-  qrOptions: {
-    errorCorrectionLevel: 'H',
-  },
+// shared QR config; scales the quiet-zone margin with the canvas size so
+// both the on-screen (300px) and the high-res export render identically.
+const qrOptions = (size: number, data: string) => ({
+  width: size,
+  height: size,
+  type: 'canvas' as const,
+  shape: 'circle' as const,
+  margin: Math.round((10 * size) / QR_SIZE),
+  data,
+  dotsOptions: { type: 'rounded' as const, color: ink.value },
+  cornersSquareOptions: { type: 'extra-rounded' as const, color: ink.value },
+  cornersDotOptions: { color: ink.value },
+  backgroundOptions: { color: 'rgba(0,0,0,0)' },
+  qrOptions: { errorCorrectionLevel: 'H' as const },
 });
+
+const qrCode = new QRCodeStyling(qrOptions(QR_SIZE, ''));
 
 const onSubmit = () => {
   loading.value = true;
@@ -367,10 +362,14 @@ const onSubmit = () => {
 // draw the call-to-action text curved evenly around the full ring.
 // fits a whole number of phrase repeats and stretches spacing so the
 // loop closes seamlessly (no cut-off / overlap at the seam).
-const drawRingText = (ctx: CanvasRenderingContext2D, size: number) => {
-  const radius = size / 2 - RING / 2;
-  const fontSize = 16;
-  const baseSpacing = 4;
+const drawRingText = (
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  ring: number,
+  fontSize: number,
+) => {
+  const radius = size / 2 - ring / 2;
+  const baseSpacing = fontSize / 4;
 
   ctx.save();
   ctx.fillStyle = '#ffffff';
@@ -413,12 +412,15 @@ const renderRing = (canvas: HTMLCanvasElement) => {
   ctx.strokeStyle = ink.value;
   ctx.lineWidth = RING;
   ctx.stroke();
-  drawRingText(ctx, TOTAL);
+  drawRingText(ctx, TOTAL, RING, BASE_FONT);
 };
 
-// composite the full tag (mesh + QR + ring + text) onto one canvas
-const buildComposite = (source: HTMLCanvasElement) => {
-  const size = source.width + RING * 2;
+// composite the full tag (mesh + QR + ring + text) onto one canvas at `scale`.
+// ring width, font and margin all scale together so the export looks identical
+// to the on-screen version, just at higher resolution.
+const buildComposite = (source: CanvasImageSource, srcSize: number, scale: number) => {
+  const ring = RING * scale;
+  const size = srcSize + ring * 2;
   const offscreen = document.createElement('canvas');
   offscreen.width = size;
   offscreen.height = size;
@@ -428,21 +430,21 @@ const buildComposite = (source: HTMLCanvasElement) => {
   // clip to inner circle for mesh + QR
   ctx.save();
   ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2 - RING, 0, Math.PI * 2);
+  ctx.arc(size / 2, size / 2, size / 2 - ring, 0, Math.PI * 2);
   ctx.clip();
 
   drawMeshToCanvas(ctx, size);
-  ctx.drawImage(source, RING, RING);
+  ctx.drawImage(source, ring, ring);
   ctx.restore();
 
   // navy ring
   ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2 - RING / 2, 0, Math.PI * 2);
+  ctx.arc(size / 2, size / 2, size / 2 - ring / 2, 0, Math.PI * 2);
   ctx.strokeStyle = ink.value;
-  ctx.lineWidth = RING;
+  ctx.lineWidth = ring;
   ctx.stroke();
 
-  drawRingText(ctx, size);
+  drawRingText(ctx, size, ring, BASE_FONT * scale);
   return offscreen;
 };
 
@@ -455,11 +457,17 @@ const decodesToUrl = (canvas: HTMLCanvasElement) => {
   return result?.data === qrValue.value;
 };
 
-const downloadAsPng = () => {
-  const source = qrContainer.value?.querySelector('canvas');
-  if (!source) return;
+const downloadAsPng = async () => {
+  if (!data.value.slug) return;
 
-  const offscreen = buildComposite(source);
+  // render a fresh high-resolution QR (browser-side only, nothing stored server-side)
+  const srcSize = QR_SIZE * EXPORT_SCALE;
+  const hiRes = new QRCodeStyling(qrOptions(srcSize, qrValue.value));
+  const raw = await hiRes.getRawData('png');
+  if (!(raw instanceof Blob)) return;
+  const bitmap = await createImageBitmap(raw);
+
+  const offscreen = buildComposite(bitmap, srcSize, EXPORT_SCALE);
   if (!offscreen) return;
 
   if (!decodesToUrl(offscreen)) {
@@ -476,7 +484,10 @@ const downloadAsPng = () => {
   link.href = offscreen.toDataURL('image/png');
   link.click();
 
-  $q.notify({ type: 'positive', message: 'QR verified — downloading...' });
+  $q.notify({
+    type: 'positive',
+    message: `QR verified — downloading (${offscreen.width}×${offscreen.height})...`,
+  });
 };
 
 watch(qrValue, (val) => {
