@@ -41,6 +41,14 @@
 
       <div v-if="data.slug" class="col-12 q-pa-md">
         <q-btn
+          color="secondary"
+          size="lg"
+          icon="shuffle"
+          label="Randomize Colors"
+          class="full-width q-mb-md"
+          @click="randomizeColors"
+        />
+        <q-btn
           color="primary"
           size="lg"
           icon="download"
@@ -83,48 +91,61 @@ const router = useRouter();
 const defaultData: Payload = { slug: '', name: '', desc: '' };
 
 const id = ref(parseInt(route.params.id?.toString() || '0'));
-const qrValue = computed(() => `${window.location.protocol}//${window.location.host}/_${data.value.slug}`);
+const qrValue = computed(
+  () => `${window.location.protocol}//${window.location.host}/_${data.value.slug}`,
+);
 const qrContainer = ref<HTMLElement | null>(null);
 const loading = ref(false);
 const disable = ref(false);
 const data = ref(defaultData);
 const endpoint = `/v1/trackers`;
 
+const corners = [
+  { x: 0.15, y: 0.15 },
+  { x: 0.85, y: 0.15 },
+  { x: 0.85, y: 0.85 },
+  { x: 0.15, y: 0.85 },
+];
+
 const randomPastel = () => {
   const h = Math.floor(Math.random() * 360);
   return `hsl(${h}, 70%, 72%)`;
 };
 
-const colors = Array.from({ length: 4 }, randomPastel);
+const colors = ref<string[]>(corners.map(randomPastel));
 
 // mesh gradient: 4 radial spots at corners blending together
-const meshGradient = [
-  `radial-gradient(circle at 15% 15%, ${colors[0]}, transparent 60%)`,
-  `radial-gradient(circle at 85% 15%, ${colors[1]}, transparent 60%)`,
-  `radial-gradient(circle at 85% 85%, ${colors[2]}, transparent 60%)`,
-  `radial-gradient(circle at 15% 85%, ${colors[3]}, transparent 60%)`,
-  'white',
-].join(', ');
+const meshGradient = computed(() =>
+  [
+    ...corners.map(
+      (c, i) =>
+        `radial-gradient(circle at ${c.x * 100}% ${c.y * 100}%, ${colors.value[i]}, transparent 60%)`,
+    ),
+    'white',
+  ].join(', '),
+);
+
+const randomizeColors = () => {
+  colors.value = corners.map(randomPastel);
+};
 
 const drawMeshToCanvas = (ctx: CanvasRenderingContext2D, size: number) => {
-  const spots = [
-    { x: 0.15, y: 0.15, color: colors[0] },
-    { x: 0.85, y: 0.15, color: colors[1] },
-    { x: 0.85, y: 0.85, color: colors[2] },
-    { x: 0.15, y: 0.85, color: colors[3] },
-  ];
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, size, size);
-  for (const spot of spots) {
+  corners.forEach((c, i) => {
     const grad = ctx.createRadialGradient(
-      spot.x * size, spot.y * size, 0,
-      spot.x * size, spot.y * size, size * 0.65,
+      c.x * size,
+      c.y * size,
+      0,
+      c.x * size,
+      c.y * size,
+      size * 0.65,
     );
-    grad.addColorStop(0, spot.color);
+    grad.addColorStop(0, colors.value[i] ?? '#ffffff');
     grad.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, size, size);
-  }
+  });
 };
 
 const qrCode = new QRCodeStyling({
@@ -162,11 +183,21 @@ const onSubmit = () => {
 
   req
     .then(async () => {
-      $q.notify({ color: 'green', textColor: 'white', message: 'Data saved!', position: 'bottom-right' });
+      $q.notify({
+        color: 'green',
+        textColor: 'white',
+        message: 'Data saved!',
+        position: 'bottom-right',
+      });
       await router.push(`${endpoint}`);
     })
     .catch((err) => {
-      $q.notify({ color: 'red', textColor: 'white', message: err.response.data.msg, position: 'bottom-right' });
+      $q.notify({
+        color: 'red',
+        textColor: 'white',
+        message: err.response.data.msg,
+        position: 'bottom-right',
+      });
     })
     .finally(() => {
       loading.value = false;
