@@ -28,7 +28,7 @@
         <q-section class="flex flex-center">
           <canvas
             ref="mirrorCanvas"
-            style="max-width: 300px; width: 100%; height: auto; cursor: pointer"
+            style="max-width: 300px; width: 100%; aspect-ratio: 1; cursor: pointer"
             @click="downloadAsPng"
           />
 
@@ -194,7 +194,7 @@ const downloadAsPng = () => {
 
 watch(qrValue, async () => {
   await drawCanvas();
-});
+}, { flush: 'post' });
 
 onMounted(async () => {
   await drawCanvas();
