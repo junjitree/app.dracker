@@ -24,26 +24,8 @@
         <q-input v-model="data.desc" :disable="disable" filled label="Desc" type="textarea" />
       </div>
 
-      <div v-if="data.slug" class="col-12 q-pa-md">
-        <q-section class="flex flex-center">
-          <canvas
-            ref="mirrorCanvas"
-            style="max-width: 300px; width: 100%; aspect-ratio: 1; cursor: pointer"
-            @click="downloadAsPng"
-          />
-
-          <div
-            ref="qrWrapper"
-            style="position: absolute; opacity: 0; pointer-events: none"
-          >
-            <qrcode-vue
-              :value="qrValue"
-              :size="1024"
-              level="H"
-              render-as="canvas"
-            />
-          </div>
-        </q-section>
+      <div v-if="data.slug" class="col-12 q-pa-md flex flex-center">
+        <div ref="qrContainer" style="max-width: 300px; width: 100%" />
       </div>
 
       <div v-if="data.slug" class="col-12 q-pa-md">
@@ -71,9 +53,9 @@
   </q-form>
 </template>
 <script setup lang="ts">
-import QrcodeVue from 'qrcode.vue';
+import QRCodeStyling from 'qr-code-styling';
 import { api } from 'src/boot/axios';
-import { computed, onBeforeMount, ref, watch, onMounted, nextTick } from 'vue';
+import { computed, onBeforeMount, onMounted, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -87,134 +69,78 @@ const $q = useQuasar();
 const route = useRoute();
 const router = useRouter();
 
-const defaultData: Payload = {
-  slug: '',
-  name: '',
-  desc: '',
-};
+const defaultData: Payload = { slug: '', name: '', desc: '' };
 
 const id = ref(parseInt(route.params.id?.toString() || '0'));
-const qrValue = computed(() => {
-  return `http://${window.location.host}/_${data.value.slug}`;
-});
-const mirrorCanvas = ref<HTMLCanvasElement | null>(null);
-const qrWrapper = ref<HTMLElement | null>(null);
+const qrValue = computed(() => `${window.location.protocol}//${window.location.host}/_${data.value.slug}`);
+const qrContainer = ref<HTMLElement | null>(null);
 const loading = ref(false);
 const disable = ref(false);
-
 const data = ref(defaultData);
 const endpoint = `/v1/trackers`;
+
+const qrCode = new QRCodeStyling({
+  width: 300,
+  height: 300,
+  shape: 'circle',
+  data: '',
+  dotsOptions: {
+    type: 'rounded',
+    color: '#1A365D',
+  },
+  cornersSquareOptions: {
+    type: 'extra-rounded',
+    color: '#1A365D',
+  },
+  cornersDotOptions: {
+    color: '#1A365D',
+  },
+  backgroundOptions: {
+    color: '#ffffff',
+  },
+  qrOptions: {
+    errorCorrectionLevel: 'H',
+  },
+});
 
 const onSubmit = () => {
   loading.value = true;
 
   const payload: Payload = data.value;
-  let req;
-
-  if (isNaN(id.value)) {
-    req = api.post(endpoint, payload);
-  } else {
-    req = api.put(`${endpoint}/${id.value}`, payload);
-  }
+  const req = isNaN(id.value)
+    ? api.post(endpoint, payload)
+    : api.put(`${endpoint}/${id.value}`, payload);
 
   req
     .then(async () => {
-      $q.notify({
-        color: 'green',
-        textColor: 'white',
-        message: 'Data saved!',
-        position: 'bottom-right',
-      });
-
+      $q.notify({ color: 'green', textColor: 'white', message: 'Data saved!', position: 'bottom-right' });
       await router.push(`${endpoint}`);
     })
     .catch((err) => {
-      $q.notify({
-        color: 'red',
-        textColor: 'white',
-        message: err.response.data.msg,
-        position: 'bottom-right',
-      });
+      $q.notify({ color: 'red', textColor: 'white', message: err.response.data.msg, position: 'bottom-right' });
     })
     .finally(() => {
       loading.value = false;
     });
 };
 
-const drawCanvas = async () => {
-  await nextTick();
-
-  const canvas = mirrorCanvas.value;
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  const size = 1024;
-  canvas.width = size;
-  canvas.height = size;
-  const center = size / 2;
-
-  ctx.clearRect(0, 0, size, size);
-
-  ctx.beginPath();
-  ctx.arc(center, center, 490, 0, Math.PI * 2);
-  ctx.fillStyle = 'white';
-  ctx.fill();
-
-  ctx.strokeStyle = '#1A365D';
-  ctx.lineWidth = 32;
-  ctx.stroke();
-
-  let qrSource: HTMLCanvasElement | null = null;
-  for (let i = 0; i < 30; i++) {
-    qrSource = qrWrapper.value?.querySelector('canvas') ?? null;
-    if (qrSource && qrSource.width > 0) break;
-    await nextTick();
-  }
-
-  if (qrSource && qrSource.width > 0) {
-    const qrDrawSize = 650;
-    ctx.drawImage(
-      qrSource,
-      center - qrDrawSize / 2,
-      center - qrDrawSize / 2,
-      qrDrawSize,
-      qrDrawSize,
-    );
-  }
-
-  ctx.font = 'bold 50px Arial';
-  ctx.fillStyle = '#1A365D';
-  ctx.textAlign = 'center';
-  ctx.fillText('DRACKER', center, center + 380);
-};
-
 const downloadAsPng = () => {
-  const canvas = mirrorCanvas.value;
-  if (!canvas) return;
-
-  const pngUrl = canvas.toDataURL('image/png');
-  const downloadLink = document.createElement('a');
-  downloadLink.download = `dracker-qr-${data.value.slug || 'export'}.png`;
-  downloadLink.href = pngUrl;
-  downloadLink.click();
-
-  $q.notify({ type: 'positive', message: 'Image exported exactly as shown!' });
+  void qrCode.download({ name: `dracker-qr-${data.value.slug || 'export'}`, extension: 'png' });
+  $q.notify({ type: 'positive', message: 'Downloading QR code...' });
 };
 
-watch(qrValue, async () => {
-  await drawCanvas();
-}, { flush: 'post' });
+watch(qrValue, (val) => {
+  void qrCode.update({ data: val });
+});
 
-onMounted(async () => {
-  await drawCanvas();
+onMounted(() => {
+  if (qrContainer.value) {
+    qrCode.append(qrContainer.value);
+  }
 });
 
 onBeforeMount(async () => {
-  if (isNaN(id.value)) {
-    return;
-  }
-
+  if (isNaN(id.value)) return;
   loading.value = true;
   data.value = (await api.get(`${endpoint}/${id.value}`)).data;
   loading.value = false;
