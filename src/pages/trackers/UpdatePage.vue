@@ -58,7 +58,7 @@
 <script setup lang="ts">
 import QRCodeStyling from 'qr-code-styling';
 import { api } from 'src/boot/axios';
-import { computed, onBeforeMount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeMount, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -152,9 +152,10 @@ watch(qrValue, (val) => {
   void qrCode.update({ data: val });
 });
 
-onMounted(() => {
-  if (qrContainer.value) {
-    qrCode.append(qrContainer.value);
+watch(qrContainer, (el) => {
+  if (el) {
+    qrCode.append(el);
+    void qrCode.update({ data: qrValue.value });
   }
 });
 
