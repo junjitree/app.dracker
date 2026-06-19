@@ -24,7 +24,7 @@
         <q-input v-model="data.desc" :disable="disable" filled label="Desc" type="textarea" />
       </div>
 
-      <div v-if="data.slug" class="col-12 q-pa-md flex flex-center">
+      <div v-if="data.slug" class="col-12 q-pa-md column flex-center">
         <div
           ref="qrContainer"
           :style="{
@@ -37,6 +37,10 @@
             background: meshGradient,
           }"
         />
+        <div class="row items-center q-gutter-xs q-mt-md text-grey-6 text-caption">
+          <q-icon name="photo_camera" size="18px" />
+          <span class="text-uppercase" style="letter-spacing: 1px">Scan to ping</span>
+        </div>
       </div>
 
       <div v-if="data.slug" class="col-12 q-pa-md">
