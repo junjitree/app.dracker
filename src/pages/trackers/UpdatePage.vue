@@ -170,6 +170,7 @@ const RING = 30; // ring width in native canvas px (qr is 300 -> total 360)
 const RING_TEXT = 'SCAN TO PING • ';
 const BASE_FONT = 16; // ring text size at 1x
 const EXPORT_SCALE = 4; // download render multiplier for print-quality output
+const EXPORT_PAD = 16; // transparent margin around the tag in the export (printer gap), 1x
 const TOTAL = QR_SIZE + RING * 2; // 360 native canvas size incl. ring
 const ringInset = `${(RING / TOTAL) * 100}%`;
 
@@ -420,31 +421,36 @@ const renderRing = (canvas: HTMLCanvasElement) => {
 // to the on-screen version, just at higher resolution.
 const buildComposite = (source: CanvasImageSource, srcSize: number, scale: number) => {
   const ring = RING * scale;
-  const size = srcSize + ring * 2;
+  const pad = EXPORT_PAD * scale;
+  const circle = srcSize + ring * 2; // the tag artwork
+  const size = circle + pad * 2; // full canvas incl. transparent printer gap
   const offscreen = document.createElement('canvas');
   offscreen.width = size;
   offscreen.height = size;
   const ctx = offscreen.getContext('2d');
   if (!ctx) return null;
 
+  // draw the tag inset by the padding; everything below works in circle-space
+  ctx.translate(pad, pad);
+
   // clip to inner circle for mesh + QR
   ctx.save();
   ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2 - ring, 0, Math.PI * 2);
+  ctx.arc(circle / 2, circle / 2, circle / 2 - ring, 0, Math.PI * 2);
   ctx.clip();
 
-  drawMeshToCanvas(ctx, size);
+  drawMeshToCanvas(ctx, circle);
   ctx.drawImage(source, ring, ring);
   ctx.restore();
 
   // navy ring
   ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2 - ring / 2, 0, Math.PI * 2);
+  ctx.arc(circle / 2, circle / 2, circle / 2 - ring / 2, 0, Math.PI * 2);
   ctx.strokeStyle = ink.value;
   ctx.lineWidth = ring;
   ctx.stroke();
 
-  drawRingText(ctx, size, ring, BASE_FONT * scale);
+  drawRingText(ctx, circle, ring, BASE_FONT * scale);
   return offscreen;
 };
 
