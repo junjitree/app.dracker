@@ -161,8 +161,14 @@ const drawCanvas = async () => {
   ctx.lineWidth = 32;
   ctx.stroke();
 
-  const qrSource = document.querySelector('canvas#qrcode') as HTMLCanvasElement;
-  if (qrSource) {
+  let qrSource: HTMLCanvasElement | null = null;
+  for (let i = 0; i < 30; i++) {
+    qrSource = document.querySelector('canvas#qrcode') as HTMLCanvasElement;
+    if (qrSource && qrSource.width > 0) break;
+    await nextTick();
+  }
+
+  if (qrSource && qrSource.width > 0) {
     const qrDrawSize = 650;
     ctx.drawImage(
       qrSource,
