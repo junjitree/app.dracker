@@ -42,9 +42,6 @@
     "vue-eslint-parser": "^10.2.0",
     "vue-tsc": "^3.0.7"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": ["@parcel/watcher", "esbuild"]
-  },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20",
     "npm": ">= 6.13.4",
