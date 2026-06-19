@@ -84,6 +84,7 @@
 </template>
 <script setup lang="ts">
 import QRCodeStyling from 'qr-code-styling';
+import jsQR from 'jsqr';
 import { api } from 'src/boot/axios';
 import { computed, onBeforeMount, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
@@ -142,8 +143,6 @@ const pickTokyoColors = () => {
   return corners.map((_, i) => pool[i % pool.length] as string);
 };
 
-const colors = ref<string[]>(pickTokyoColors());
-
 // dark "ink" palette for QR dots + ring (must stay high-contrast on light mesh)
 const inkPalette = [
   '#1a365d', // navy
@@ -157,7 +156,63 @@ const inkPalette = [
 ];
 
 const pickInk = () => inkPalette[Math.floor(Math.random() * inkPalette.length)] as string;
-const ink = ref<string>(pickInk());
+
+// --- contrast helpers (WCAG) so dots stay readable over any mesh spot ---
+const MIN_CONTRAST = 4.5;
+
+const srgbToLinear = (c: number) => {
+  const s = c / 255;
+  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+};
+
+const relLuminance = (r: number, g: number, b: number) =>
+  0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+
+const hexLum = (hex: string) => {
+  const n = parseInt(hex.replace('#', ''), 16);
+  return relLuminance((n >> 16) & 255, (n >> 8) & 255, n & 255);
+};
+
+// parse "hsl(h, s%, l%)" -> relative luminance
+const hslLum = (str: string) => {
+  const m = str.match(/hsl\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%/);
+  if (!m) return 1;
+  const h = Number(m[1]) / 360;
+  const s = Number(m[2]) / 100;
+  const l = Number(m[3]) / 100;
+  const hue = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return relLuminance(hue(p, q, h + 1 / 3) * 255, hue(p, q, h) * 255, hue(p, q, h - 1 / 3) * 255);
+};
+
+const contrast = (lumA: number, lumB: number) =>
+  (Math.max(lumA, lumB) + 0.05) / (Math.min(lumA, lumB) + 0.05);
+
+// pick mesh colors + ink so every dot keeps >= MIN_CONTRAST against its
+// background (white center and each corner spot). Falls back to darkest ink.
+const pickValidScheme = () => {
+  for (let i = 0; i < 60; i++) {
+    const cols = pickTokyoColors();
+    const k = pickInk();
+    const kl = hexLum(k);
+    if (cols.every((c) => contrast(kl, hslLum(c)) >= MIN_CONTRAST)) {
+      return { colors: cols, ink: k };
+    }
+  }
+  return { colors: pickTokyoColors(), ink: '#16161e' };
+};
+
+const initial = pickValidScheme();
+const colors = ref<string[]>(initial.colors);
+const ink = ref<string>(initial.ink);
 
 // mesh gradient: 4 radial spots at corners blending together
 const meshGradient = computed(() =>
@@ -171,8 +226,9 @@ const meshGradient = computed(() =>
 );
 
 const randomizeColors = () => {
-  colors.value = pickTokyoColors();
-  ink.value = pickInk();
+  const scheme = pickValidScheme();
+  colors.value = scheme.colors;
+  ink.value = scheme.ink;
   void qrCode.update({
     dotsOptions: { type: 'rounded', color: ink.value },
     cornersSquareOptions: { type: 'extra-rounded', color: ink.value },
@@ -205,6 +261,7 @@ const qrCode = new QRCodeStyling({
   height: 300,
   type: 'canvas',
   shape: 'circle',
+  margin: 10, // quiet zone so the ring/mesh never crowds the finder pattern
   data: '',
   dotsOptions: {
     type: 'rounded',
@@ -308,16 +365,14 @@ const renderRing = (canvas: HTMLCanvasElement) => {
   drawRingText(ctx, TOTAL);
 };
 
-const downloadAsPng = () => {
-  const source = qrContainer.value?.querySelector('canvas');
-  if (!source) return;
-
+// composite the full tag (mesh + QR + ring + text) onto one canvas
+const buildComposite = (source: HTMLCanvasElement) => {
   const size = source.width + RING * 2;
   const offscreen = document.createElement('canvas');
   offscreen.width = size;
   offscreen.height = size;
   const ctx = offscreen.getContext('2d');
-  if (!ctx) return;
+  if (!ctx) return null;
 
   // clip to inner circle for mesh + QR
   ctx.save();
@@ -325,12 +380,8 @@ const downloadAsPng = () => {
   ctx.arc(size / 2, size / 2, size / 2 - RING, 0, Math.PI * 2);
   ctx.clip();
 
-  // draw mesh gradient background
   drawMeshToCanvas(ctx, size);
-
-  // draw QR (transparent bg) on top
   ctx.drawImage(source, RING, RING);
-
   ctx.restore();
 
   // navy ring
@@ -340,15 +391,41 @@ const downloadAsPng = () => {
   ctx.lineWidth = RING;
   ctx.stroke();
 
-  // curved call-to-action text on the ring
   drawRingText(ctx, size);
+  return offscreen;
+};
+
+// integrity gate: confirm the finished artifact actually decodes to our URL
+const decodesToUrl = (canvas: HTMLCanvasElement) => {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return false;
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const result = jsQR(img.data, img.width, img.height);
+  return result?.data === qrValue.value;
+};
+
+const downloadAsPng = () => {
+  const source = qrContainer.value?.querySelector('canvas');
+  if (!source) return;
+
+  const offscreen = buildComposite(source);
+  if (!offscreen) return;
+
+  if (!decodesToUrl(offscreen)) {
+    $q.notify({
+      type: 'negative',
+      message: 'QR failed integrity check — not downloaded. Try Randomize Colors.',
+      position: 'bottom-right',
+    });
+    return;
+  }
 
   const link = document.createElement('a');
   link.download = `dracker-qr-${data.value.slug || 'export'}.png`;
   link.href = offscreen.toDataURL('image/png');
   link.click();
 
-  $q.notify({ type: 'positive', message: 'Downloading QR code...' });
+  $q.notify({ type: 'positive', message: 'QR verified — downloading...' });
 };
 
 watch(qrValue, (val) => {
