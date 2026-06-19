@@ -144,6 +144,21 @@ const pickTokyoColors = () => {
 
 const colors = ref<string[]>(pickTokyoColors());
 
+// dark "ink" palette for QR dots + ring (must stay high-contrast on light mesh)
+const inkPalette = [
+  '#1a365d', // navy
+  '#24283b', // tokyo storm
+  '#3d59a1', // tokyo dark blue
+  '#16161e', // tokyo deep
+  '#414868', // tokyo grey-blue
+  '#532b88', // deep purple
+  '#7a1f4d', // deep magenta
+  '#1b4332', // deep green
+];
+
+const pickInk = () => inkPalette[Math.floor(Math.random() * inkPalette.length)] as string;
+const ink = ref<string>(pickInk());
+
 // mesh gradient: 4 radial spots at corners blending together
 const meshGradient = computed(() =>
   [
@@ -157,6 +172,13 @@ const meshGradient = computed(() =>
 
 const randomizeColors = () => {
   colors.value = pickTokyoColors();
+  ink.value = pickInk();
+  void qrCode.update({
+    dotsOptions: { type: 'rounded', color: ink.value },
+    cornersSquareOptions: { type: 'extra-rounded', color: ink.value },
+    cornersDotOptions: { color: ink.value },
+  });
+  if (ringCanvas.value) renderRing(ringCanvas.value);
 };
 
 const drawMeshToCanvas = (ctx: CanvasRenderingContext2D, size: number) => {
@@ -186,14 +208,14 @@ const qrCode = new QRCodeStyling({
   data: '',
   dotsOptions: {
     type: 'rounded',
-    color: '#1A365D',
+    color: ink.value,
   },
   cornersSquareOptions: {
     type: 'extra-rounded',
-    color: '#1A365D',
+    color: ink.value,
   },
   cornersDotOptions: {
-    color: '#1A365D',
+    color: ink.value,
   },
   backgroundOptions: {
     color: 'rgba(0,0,0,0)',
@@ -280,7 +302,7 @@ const renderRing = (canvas: HTMLCanvasElement) => {
   ctx.clearRect(0, 0, TOTAL, TOTAL);
   ctx.beginPath();
   ctx.arc(TOTAL / 2, TOTAL / 2, TOTAL / 2 - RING / 2, 0, Math.PI * 2);
-  ctx.strokeStyle = '#1A365D';
+  ctx.strokeStyle = ink.value;
   ctx.lineWidth = RING;
   ctx.stroke();
   drawRingText(ctx, TOTAL);
@@ -314,7 +336,7 @@ const downloadAsPng = () => {
   // navy ring
   ctx.beginPath();
   ctx.arc(size / 2, size / 2, size / 2 - RING / 2, 0, Math.PI * 2);
-  ctx.strokeStyle = '#1A365D';
+  ctx.strokeStyle = ink.value;
   ctx.lineWidth = RING;
   ctx.stroke();
 
