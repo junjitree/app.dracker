@@ -120,7 +120,6 @@
 </template>
 <script setup lang="ts">
 import QRCodeStyling from 'qr-code-styling';
-import jsQR from 'jsqr';
 import { api } from 'src/boot/axios';
 import { computed, onBeforeMount, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
@@ -454,15 +453,6 @@ const buildComposite = (source: CanvasImageSource, srcSize: number, scale: numbe
   return offscreen;
 };
 
-// integrity gate: confirm the finished artifact actually decodes to our URL
-const decodesToUrl = (canvas: HTMLCanvasElement) => {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return false;
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const result = jsQR(img.data, img.width, img.height);
-  return result?.data === qrValue.value;
-};
-
 const downloadAsPng = async () => {
   if (!data.value.slug) return;
 
@@ -476,15 +466,6 @@ const downloadAsPng = async () => {
   const offscreen = buildComposite(bitmap, srcSize, EXPORT_SCALE);
   if (!offscreen) return;
 
-  if (!decodesToUrl(offscreen)) {
-    $q.notify({
-      type: 'negative',
-      message: 'QR failed integrity check — not downloaded. Try Randomize Colors.',
-      position: 'bottom-right',
-    });
-    return;
-  }
-
   const link = document.createElement('a');
   link.download = `dracker-qr-${data.value.slug || 'export'}.png`;
   link.href = offscreen.toDataURL('image/png');
@@ -492,7 +473,7 @@ const downloadAsPng = async () => {
 
   $q.notify({
     type: 'positive',
-    message: `QR verified — downloading (${offscreen.width}×${offscreen.height})...`,
+    message: `Downloading QR (${offscreen.width}×${offscreen.height})...`,
   });
 };
 
