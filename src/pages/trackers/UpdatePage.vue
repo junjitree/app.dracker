@@ -144,7 +144,30 @@ const onSubmit = () => {
 };
 
 const downloadAsPng = () => {
-  void qrCode.download({ name: `dracker-qr-${data.value.slug || 'export'}`, extension: 'png' });
+  const source = qrContainer.value?.querySelector('canvas');
+  if (!source) return;
+
+  const borderWidth = 8;
+  const size = source.width + borderWidth * 2;
+  const offscreen = document.createElement('canvas');
+  offscreen.width = size;
+  offscreen.height = size;
+  const ctx = offscreen.getContext('2d');
+  if (!ctx) return;
+
+  ctx.drawImage(source, borderWidth, borderWidth);
+
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, size / 2 - borderWidth / 2, 0, Math.PI * 2);
+  ctx.strokeStyle = '#1A365D';
+  ctx.lineWidth = borderWidth;
+  ctx.stroke();
+
+  const link = document.createElement('a');
+  link.download = `dracker-qr-${data.value.slug || 'export'}.png`;
+  link.href = offscreen.toDataURL('image/png');
+  link.click();
+
   $q.notify({ type: 'positive', message: 'Downloading QR code...' });
 };
 
