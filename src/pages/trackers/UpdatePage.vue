@@ -32,14 +32,17 @@
             @click="downloadAsPng"
           />
 
-          <qrcode-vue
-            id="qrcode"
-            :value="qrValue"
-            :size="1024"
-            level="H"
-            render-as="canvas"
-            style="position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; overflow: hidden"
-          />
+          <div
+            ref="qrWrapper"
+            style="position: absolute; opacity: 0; pointer-events: none"
+          >
+            <qrcode-vue
+              :value="qrValue"
+              :size="1024"
+              level="H"
+              render-as="canvas"
+            />
+          </div>
         </q-section>
       </div>
 
@@ -95,6 +98,7 @@ const qrValue = computed(() => {
   return `http://${window.location.host}/_${data.value.slug}`;
 });
 const mirrorCanvas = ref<HTMLCanvasElement | null>(null);
+const qrWrapper = ref<HTMLElement | null>(null);
 const loading = ref(false);
 const disable = ref(false);
 
@@ -163,7 +167,7 @@ const drawCanvas = async () => {
 
   let qrSource: HTMLCanvasElement | null = null;
   for (let i = 0; i < 30; i++) {
-    qrSource = document.querySelector<HTMLCanvasElement>('canvas#qrcode');
+    qrSource = qrWrapper.value?.querySelector('canvas') ?? null;
     if (qrSource && qrSource.width > 0) break;
     await nextTick();
   }
