@@ -103,9 +103,12 @@ const router = useRouter();
 const defaultData: Payload = { slug: '', name: '', desc: '' };
 
 const id = ref(parseInt(route.params.id?.toString() || '0'));
-const qrValue = computed(
-  () => `${window.location.protocol}//${window.location.host}/_${data.value.slug}`,
-);
+// encode the short, stable tag URL (apex domain, e.g. dracker.sh/<slug>) which
+// the server resolves/redirects — keeps the QR small and reprint-proof.
+const qrValue = computed(() => {
+  const apex = window.location.host.replace(/^app\./, '');
+  return `${window.location.protocol}//${apex}/${data.value.slug}`;
+});
 const qrContainer = ref<HTMLElement | null>(null);
 const ringCanvas = ref<HTMLCanvasElement | null>(null);
 const loading = ref(false);
