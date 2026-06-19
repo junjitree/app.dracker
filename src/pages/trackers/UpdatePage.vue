@@ -233,6 +233,7 @@ const downloadAsPng = () => {
   if (!ctx) return;
 
   // clip to circle
+  ctx.save();
   ctx.beginPath();
   ctx.arc(size / 2, size / 2, size / 2 - borderWidth, 0, Math.PI * 2);
   ctx.clip();
