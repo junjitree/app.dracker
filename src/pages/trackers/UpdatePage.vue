@@ -24,6 +24,18 @@
         <q-input v-model="data.desc" :disable="disable" filled label="Desc" type="textarea" />
       </div>
 
+      <div class="col-12 q-pa-md">
+        <q-input
+          v-model="data.target_url"
+          :disable="disable"
+          filled
+          clearable
+          type="url"
+          label="Custom destination (optional)"
+          hint="Where this tag redirects when scanned. Leave blank to use the public ping page. Changing it does not require reprinting the QR."
+        />
+      </div>
+
       <div v-if="data.slug" class="col-12 q-pa-md flex flex-center">
         <div class="qr-frame" style="position: relative; width: 100%; max-width: 360px">
           <div
@@ -69,6 +81,30 @@
         />
       </div>
 
+      <div v-if="data.slug" class="col-12 q-pa-md">
+        <q-card flat bordered>
+          <q-card-section class="row items-center q-py-sm">
+            <q-icon name="qr_code_scanner" size="sm" class="q-mr-sm" />
+            <div class="text-subtitle1">
+              {{ scans.length }} scan{{ scans.length === 1 ? '' : 's' }}
+            </div>
+            <q-space />
+            <div v-if="lastScanAt" class="text-caption text-grey-6">Last: {{ lastScanAt }}</div>
+          </q-card-section>
+          <q-list v-if="scans.length" dense separator>
+            <q-item v-for="s in scans.slice(0, 8)" :key="s.id">
+              <q-item-section>
+                <q-item-label>{{ new Date(s.created_at).toLocaleString() }}</q-item-label>
+                <q-item-label caption>{{ s.ip || 'unknown IP' }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+          <q-card-section v-else class="text-caption text-grey-6 q-pt-none">
+            No scans yet.
+          </q-card-section>
+        </q-card>
+      </div>
+
       <div class="col-12 q-mb-md q-pa-md">
         <q-btn
           :disable="loading"
@@ -94,13 +130,25 @@ interface Payload {
   slug: string;
   name: string;
   desc: string;
+  target_url: string | null;
+}
+
+interface Scan {
+  id: number;
+  ip: string | null;
+  user_agent: string | null;
+  created_at: string;
 }
 
 const $q = useQuasar();
 const route = useRoute();
 const router = useRouter();
 
-const defaultData: Payload = { slug: '', name: '', desc: '' };
+const defaultData: Payload = { slug: '', name: '', desc: '', target_url: null };
+const scans = ref<Scan[]>([]);
+const lastScanAt = computed(() =>
+  scans.value[0] ? new Date(scans.value[0].created_at).toLocaleString() : '',
+);
 
 const id = ref(parseInt(route.params.id?.toString() || '0'));
 // encode the short, stable tag URL (apex domain, e.g. dracker.sh/<slug>) which
@@ -450,6 +498,7 @@ onBeforeMount(async () => {
   if (isNaN(id.value)) return;
   loading.value = true;
   data.value = (await api.get(`${endpoint}/${id.value}`)).data;
+  scans.value = (await api.get(`${endpoint}/${id.value}/scans`)).data;
   loading.value = false;
 });
 </script>
