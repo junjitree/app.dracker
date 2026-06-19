@@ -38,7 +38,7 @@
             :size="1024"
             level="H"
             render-as="canvas"
-            style="display: none"
+            style="position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; overflow: hidden"
           />
         </q-section>
       </div>
