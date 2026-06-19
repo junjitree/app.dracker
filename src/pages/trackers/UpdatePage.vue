@@ -24,22 +24,35 @@
         <q-input v-model="data.desc" :disable="disable" filled label="Desc" type="textarea" />
       </div>
 
-      <div v-if="data.slug" class="col-12 q-pa-md column flex-center">
-        <div
-          ref="qrContainer"
-          :style="{
-            maxWidth: '300px',
-            width: '100%',
-            borderRadius: '50%',
-            border: '8px solid #1A365D',
-            overflow: 'hidden',
-            lineHeight: '0',
-            background: meshGradient,
-          }"
-        />
-        <div class="row items-center q-gutter-xs q-mt-md text-grey-6 text-caption">
-          <q-icon name="photo_camera" size="18px" />
-          <span class="text-uppercase" style="letter-spacing: 1px">Scan to ping</span>
+      <div v-if="data.slug" class="col-12 q-pa-md flex flex-center">
+        <div class="qr-frame" style="position: relative; width: 100%; max-width: 360px">
+          <div
+            ref="qrContainer"
+            :style="{
+              position: 'absolute',
+              inset: ringInset,
+              borderRadius: '50%',
+              overflow: 'hidden',
+              lineHeight: '0',
+              background: meshGradient,
+            }"
+          />
+          <svg
+            viewBox="0 0 360 360"
+            style="position: relative; width: 100%; display: block; pointer-events: none"
+          >
+            <circle cx="180" cy="180" r="165" fill="none" stroke="#1a365d" stroke-width="30" />
+            <defs>
+              <path
+                id="ringPath"
+                d="M 180,180 m 0,-165 a 165,165 0 1,1 0,330 a 165,165 0 1,1 0,-330"
+                fill="none"
+              />
+            </defs>
+            <text fill="#ffffff" font-size="16" font-weight="600" letter-spacing="4">
+              <textPath href="#ringPath">{{ ringText }}</textPath>
+            </text>
+          </svg>
         </div>
       </div>
 
@@ -103,6 +116,12 @@ const loading = ref(false);
 const disable = ref(false);
 const data = ref(defaultData);
 const endpoint = `/v1/trackers`;
+
+// navy ring carrying the "scan" call-to-action text
+const RING = 30; // ring width in native canvas px (qr is 300 -> total 360)
+const RING_TEXT = 'SCAN TO PING • ';
+const ringText = RING_TEXT.repeat(6);
+const ringInset = `${(RING / (300 + RING * 2)) * 100}%`;
 
 const corners = [
   { x: 0.15, y: 0.15 },
@@ -220,38 +239,73 @@ const onSubmit = () => {
     });
 };
 
+// draw repeating call-to-action text curved along the ring centerline
+const drawRingText = (ctx: CanvasRenderingContext2D, size: number) => {
+  const cx = size / 2;
+  const cy = size / 2;
+  const radius = size / 2 - RING / 2;
+  const fontSize = 16;
+  const letterSpacing = 4;
+
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `600 ${fontSize}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.translate(cx, cy);
+
+  let angle = -Math.PI / 2; // start at top
+  const end = angle + Math.PI * 2;
+  let i = 0;
+  while (angle < end) {
+    const ch = RING_TEXT[i % RING_TEXT.length] ?? ' ';
+    const charAngle = (ctx.measureText(ch).width + letterSpacing) / radius;
+    if (angle + charAngle > end) break;
+    ctx.save();
+    ctx.rotate(angle + charAngle / 2);
+    ctx.translate(0, -radius);
+    ctx.fillText(ch, 0, 0);
+    ctx.restore();
+    angle += charAngle;
+    i++;
+  }
+  ctx.restore();
+};
+
 const downloadAsPng = () => {
   const source = qrContainer.value?.querySelector('canvas');
   if (!source) return;
 
-  const borderWidth = 8;
-  const size = source.width + borderWidth * 2;
+  const size = source.width + RING * 2;
   const offscreen = document.createElement('canvas');
   offscreen.width = size;
   offscreen.height = size;
   const ctx = offscreen.getContext('2d');
   if (!ctx) return;
 
-  // clip to circle
+  // clip to inner circle for mesh + QR
   ctx.save();
   ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2 - borderWidth, 0, Math.PI * 2);
+  ctx.arc(size / 2, size / 2, size / 2 - RING, 0, Math.PI * 2);
   ctx.clip();
 
   // draw mesh gradient background
   drawMeshToCanvas(ctx, size);
 
   // draw QR (transparent bg) on top
-  ctx.drawImage(source, borderWidth, borderWidth);
+  ctx.drawImage(source, RING, RING);
 
   ctx.restore();
 
-  // border ring
+  // navy ring
   ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2 - borderWidth / 2, 0, Math.PI * 2);
+  ctx.arc(size / 2, size / 2, size / 2 - RING / 2, 0, Math.PI * 2);
   ctx.strokeStyle = '#1A365D';
-  ctx.lineWidth = borderWidth;
+  ctx.lineWidth = RING;
   ctx.stroke();
+
+  // curved call-to-action text on the ring
+  drawRingText(ctx, size);
 
   const link = document.createElement('a');
   link.download = `dracker-qr-${data.value.slug || 'export'}.png`;
@@ -279,3 +333,11 @@ onBeforeMount(async () => {
   loading.value = false;
 });
 </script>
+
+<style scoped>
+.qr-frame :deep(canvas) {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+</style>
