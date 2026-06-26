@@ -1,25 +1,19 @@
 // Quasar SCSS (& Sass) Variables
 // --------------------------------------------------
-// To customize the look and feel of this app, you can override
-// the Sass/SCSS variables found in Quasar's source Sass/SCSS files.
+// Dracker brand palette. Anchored to the logo gradient (#5B8CFF -> #6EE7F9):
+// a confident, trustworthy blue for an all-purpose "lost & found" tag.
 
-// Check documentation for full list of Quasar variables
+$primary: #4f6ef7; // brand blue (buttons, links, accents)
+$secondary: #14b8d4; // cyan — secondary actions / highlights
+$accent: #6ee7f9; // logo cyan tip — sparing decorative use
 
-// Your own variables (that are declared here) and Quasar's own
-// ones will be available out of the box in your .vue/.scss/.sass files
+$dark: #1b1e27; // dark surface
+$dark-page: #14161d; // dark page bg
 
-// It's highly recommended to change the default colors
-// to match your app's branding.
-// Tip: Use the "Theme Builder" on Quasar's documentation website.
+$positive: #16b981; // emerald
+$negative: #ef4444; // red
+$info: #3b82f6; // blue
+$warning: #f59e0b; // amber
 
-$primary: #33ccff;
-$secondary: #26a69a;
-$accent: #9c27b0;
-
-$dark: #1d1d1d;
-$dark-page: #121212;
-
-$positive: #21ba45;
-$negative: #c10015;
-$info: #31ccec;
-$warning: #f2c037;
+// Brand gradient reused across hero / logo / CTA surfaces
+$brand-gradient: linear-gradient(135deg, #5b8cff 0%, #6ee7f9 100%);

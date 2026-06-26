@@ -1,0 +1,113 @@
+// Dracker design tokens
+// --------------------------------------------------
+// Light-first, clean & trustworthy. Surfaces, radii, shadows and the base
+// component pass live here so every screen inherits one cohesive system.
+
+:root {
+  // Surfaces (light)
+  --dr-bg: #f4f6fb; // app page background
+  --dr-surface: #ffffff; // cards, headers, inputs
+  --dr-surface-2: #eef1f8; // subtle fills, hover, chips
+  --dr-border: #e6e9f2; // hairline borders
+  --dr-text: #14161d; // primary text
+  --dr-muted: #6b7280; // secondary text
+  --dr-faint: #9aa1b0; // tertiary text / icons
+
+  // Brand
+  --dr-primary: #4f6ef7;
+  --dr-primary-strong: #3b59e0;
+  --dr-primary-soft: #eaeffe; // tinted backgrounds for primary chips
+  --dr-gradient: linear-gradient(135deg, #5b8cff 0%, #6ee7f9 100%);
+
+  // Radii
+  --dr-r-sm: 10px;
+  --dr-r: 14px;
+  --dr-r-lg: 20px;
+  --dr-r-pill: 999px;
+
+  // Shadows (soft, layered)
+  --dr-shadow-sm: 0 1px 2px rgba(20, 22, 29, 0.05);
+  --dr-shadow: 0 1px 2px rgba(20, 22, 29, 0.04), 0 6px 20px rgba(20, 22, 29, 0.07);
+  --dr-shadow-lg: 0 2px 6px rgba(20, 22, 29, 0.05), 0 18px 40px rgba(20, 22, 29, 0.12);
+
+  // Type
+  --dr-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+// Dark surfaces (used when Quasar dark mode is active)
+.body--dark {
+  --dr-bg: #14161d;
+  --dr-surface: #1b1e27;
+  --dr-surface-2: #232733;
+  --dr-border: #2b303d;
+  --dr-text: #e9ecf5;
+  --dr-muted: #9aa1b0;
+  --dr-faint: #6b7280;
+  --dr-primary-soft: #1f2640;
+  --dr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --dr-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.45);
+  --dr-shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+// --- Global base -------------------------------------------------------------
+body {
+  font-family: var(--dr-font);
+  background: var(--dr-bg);
+  color: var(--dr-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+}
+
+.q-page {
+  background: var(--dr-bg);
+}
+
+// --- Cards -------------------------------------------------------------------
+.q-card {
+  border-radius: var(--dr-r-lg);
+  box-shadow: var(--dr-shadow);
+  border: 1px solid var(--dr-border);
+  background: var(--dr-surface);
+}
+
+// --- Buttons -----------------------------------------------------------------
+.q-btn {
+  border-radius: var(--dr-r-sm);
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.q-btn.q-btn--rounded {
+  border-radius: var(--dr-r-pill);
+}
+
+// Solid primary buttons get a soft brand shadow
+.q-btn--standard.bg-primary,
+.q-btn--standard.text-white.bg-primary {
+  box-shadow: 0 4px 14px rgba(79, 110, 247, 0.35);
+}
+
+// --- Inputs ------------------------------------------------------------------
+.q-field--outlined .q-field__control {
+  border-radius: var(--dr-r-sm);
+}
+
+.q-field--outlined .q-field__control:before {
+  border-color: var(--dr-border);
+}
+
+// --- Chips / badges ----------------------------------------------------------
+.q-chip {
+  border-radius: var(--dr-r-pill);
+  font-weight: 600;
+}
+
+// --- Misc --------------------------------------------------------------------
+.dr-gradient-text {
+  background: var(--dr-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
