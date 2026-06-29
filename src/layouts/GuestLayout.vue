@@ -18,9 +18,30 @@
 
 <script setup lang="ts">
 import UpdateBanner from 'components/UpdateBanner.vue';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import { useQuasar } from 'quasar';
+import { useSettingsStore } from 'src/stores/settings';
 
 const appName = ref(process.env.APP_NAME);
+const $q = useQuasar();
+const settingsStore = useSettingsStore();
+
+function applyTheme(value: string) {
+  if (value === 'auto') {
+    $q.dark.set('auto');
+    document.body.removeAttribute('theme');
+    return;
+  }
+  $q.dark.set(!value.includes('light'));
+  const named = value.replace('light', '');
+  if (named && named !== 'dark') {
+    document.body.setAttribute('theme', named);
+  } else {
+    document.body.removeAttribute('theme');
+  }
+}
+
+watch(() => settingsStore.theme, applyTheme, { immediate: true });
 </script>
 
 <style scoped lang="scss">

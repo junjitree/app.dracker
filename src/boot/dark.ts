@@ -1,8 +1,10 @@
 import { Dark } from 'quasar';
 import { boot } from 'quasar/wrappers';
+import { useSettingsStore } from 'src/stores/settings';
 
 export default boot(() => {
-  const theme = localStorage.getItem('theme') || '';
+  const settingsStore = useSettingsStore();
+  const theme = settingsStore.theme;
 
   if (theme == 'dark') {
     Dark.set(true);
@@ -12,7 +14,6 @@ export default boot(() => {
     Dark.set(!theme?.includes('light'));
     document.body.setAttribute('theme', theme?.replace('light', '') || '');
   } else {
-    // Default to the QR's light, pastel-on-white look; dark mode is opt-in.
-    Dark.set(false);
+    Dark.set('auto');
   }
 });

@@ -9,6 +9,23 @@
 
         <q-space />
 
+        <q-select
+          v-model="theme"
+          :options="themeOptions"
+          dense
+          borderless
+          emit-value
+          map-options
+          hide-dropdown-icon
+          hide-selected
+          class="dr-theme q-mr-sm"
+        >
+          <template #prepend>
+            <q-icon :name="darkIcon" size="22px" />
+          </template>
+          <q-tooltip>Theme</q-tooltip>
+        </q-select>
+
         <q-btn-dropdown flat dense class="dr-user" :menu-offset="[0, 8]">
           <template #label>
             <UserAvatar :email="email" :size="36" />
@@ -54,17 +71,58 @@
 
 <script setup lang="ts">
 import UserAvatar from 'components/UserAvatar.vue';
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from 'src/stores/auth';
+import { useSettingsStore } from 'src/stores/settings';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 
 const $q = useQuasar();
 const appName = ref(process.env.APP_NAME);
 const authStore = useAuthStore();
+const settingsStore = useSettingsStore();
 const router = useRouter();
 const { fullName, email } = storeToRefs(authStore);
+const { theme } = storeToRefs(settingsStore);
+
+const themeOptions = [
+  { value: 'auto', label: 'Auto (System)' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
+
+const darkIcon = computed(() => {
+  if (theme.value === 'light') return 'light_mode';
+  if (theme.value === 'dark') return 'dark_mode';
+  return 'brightness_auto';
+});
+
+// Mirrors admin.app.pmi: 'auto' follows the system; otherwise dark unless the
+// value is a *light variant. The body[theme] attr is reserved for named themes.
+function applyTheme(value: string) {
+  if (value === 'auto') {
+    $q.dark.set('auto');
+    document.body.removeAttribute('theme');
+    return;
+  }
+  $q.dark.set(!value.includes('light'));
+  const named = value.replace('light', '');
+  if (named && named !== 'dark') {
+    document.body.setAttribute('theme', named);
+  } else {
+    document.body.removeAttribute('theme');
+  }
+}
+
+watch(
+  theme,
+  (value) => {
+    settingsStore.setTheme(value);
+    applyTheme(value);
+  },
+  { immediate: true },
+);
 
 function logout() {
   $q.dialog({
@@ -112,6 +170,19 @@ function logout() {
     font-size: 19px;
     letter-spacing: -0.02em;
     color: var(--dr-text);
+  }
+}
+
+.dr-theme {
+  width: 46px;
+
+  :deep(.q-field__prepend) {
+    color: var(--dr-muted);
+    padding-right: 0;
+  }
+
+  :deep(.q-field__control) {
+    cursor: pointer;
   }
 }
 
