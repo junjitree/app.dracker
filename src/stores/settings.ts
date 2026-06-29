@@ -4,12 +4,12 @@ interface SettingsState {
   theme: string;
 }
 
-// Default to our agreed light brand look; Auto/Dark are available via the toggle.
+// Default to Auto (follows the system); Light/Dark are available via the toggle.
 function loadTheme(): string {
   try {
-    return localStorage.getItem('theme') || 'light';
+    return localStorage.getItem('theme') || 'auto';
   } catch {
-    return 'light';
+    return 'auto';
   }
 }
 
