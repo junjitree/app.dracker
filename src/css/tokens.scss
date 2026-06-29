@@ -4,20 +4,32 @@
 // component pass live here so every screen inherits one cohesive system.
 
 :root {
-  // Surfaces (light)
-  --dr-bg: #f4f6fb; // app page background
+  // Surfaces (light, airy — echoing the QR's white mesh ground)
+  --dr-bg: #f6f8fd; // app page background
   --dr-surface: #ffffff; // cards, headers, inputs
-  --dr-surface-2: #eef1f8; // subtle fills, hover, chips
-  --dr-border: #e6e9f2; // hairline borders
-  --dr-text: #14161d; // primary text
+  --dr-surface-2: #eef2fb; // subtle fills, hover, chips
+  --dr-border: #e7ebf6; // hairline borders
+  --dr-text: #1b2235; // primary text
   --dr-muted: #6b7280; // secondary text
   --dr-faint: #9aa1b0; // tertiary text / icons
 
-  // Brand
-  --dr-primary: #4f6ef7;
-  --dr-primary-strong: #3b59e0;
-  --dr-primary-soft: #eaeffe; // tinted backgrounds for primary chips
-  --dr-gradient: linear-gradient(135deg, #5b8cff 0%, #6ee7f9 100%);
+  // Brand — the QR's soft Tokyo Night accents (blue + purple)
+  --dr-primary: #7aa2f7; // QR mesh blue
+  --dr-primary-strong: #5b86f0;
+  --dr-primary-soft: #eef3fe; // tinted backgrounds for primary chips
+  --dr-accent: #bb9af7; // QR mesh purple
+  --dr-accent-soft: #f3edfe;
+  --dr-gradient: linear-gradient(135deg, #7aa2f7 0%, #bb9af7 55%, #7dcfff 100%);
+
+  // QR accent set (categories + decorative mesh)
+  --dr-acc-blue: #7aa2f7;
+  --dr-acc-cyan: #7dcfff;
+  --dr-acc-purple: #bb9af7;
+  --dr-acc-red: #f7768e;
+  --dr-acc-green: #9ece6a;
+  --dr-acc-orange: #ff9e64;
+  --dr-acc-yellow: #e0af68;
+  --dr-acc-teal: #2ac3de;
 
   // Radii
   --dr-r-sm: 10px;
@@ -86,7 +98,19 @@ body {
 // Solid primary buttons get a soft brand shadow
 .q-btn--standard.bg-primary,
 .q-btn--standard.text-white.bg-primary {
-  box-shadow: 0 4px 14px rgba(79, 110, 247, 0.35);
+  box-shadow: 0 4px 14px rgba(122, 162, 247, 0.4);
+}
+
+// --- QR mesh ----------------------------------------------------------------
+// The signature light backdrop: four soft accent spots blended over white,
+// matching the QR artifact. Used on auth, empty states and the detail hero.
+.dr-mesh {
+  background-color: var(--dr-surface);
+  background-image:
+    radial-gradient(circle at 12% 16%, rgba(122, 162, 247, 0.28), transparent 46%),
+    radial-gradient(circle at 88% 12%, rgba(187, 154, 247, 0.26), transparent 46%),
+    radial-gradient(circle at 86% 88%, rgba(125, 207, 255, 0.22), transparent 48%),
+    radial-gradient(circle at 14% 86%, rgba(158, 206, 106, 0.16), transparent 46%);
 }
 
 // --- Inputs ------------------------------------------------------------------

@@ -27,7 +27,6 @@ const routes: RouteRecordRaw[] = [
       { path: '/profile', component: () => import('pages/profile/IndexPage.vue') },
       { path: '/tokens', component: () => import('pages/tokens/IndexPage.vue') },
       { path: '/trackers', component: () => import('pages/trackers/IndexPage.vue') },
-      { path: '/trackers/:id', component: () => import('pages/trackers/UpdatePage.vue') },
     ],
   },
 

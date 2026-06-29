@@ -5,8 +5,8 @@
         <div
           class="dr-tag-card__icon"
           :style="{
-            background: `hsl(${category.hue} 85% 96%)`,
-            color: `hsl(${category.hue} 70% 42%)`,
+            background: `${category.color}26`,
+            color: category.color,
           }"
         >
           <q-icon :name="category.icon" size="26px" />

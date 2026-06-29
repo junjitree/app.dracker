@@ -1,19 +1,19 @@
 // Quasar SCSS (& Sass) Variables
 // --------------------------------------------------
-// Dracker brand palette. Anchored to the logo gradient (#5B8CFF -> #6EE7F9):
-// a confident, trustworthy blue for an all-purpose "lost & found" tag.
+// Dracker brand palette — the QR artifact's own soft Tokyo Night accents:
+// a light, friendly blue+purple wash, so the app matches the tags it prints.
 
-$primary: #4f6ef7; // brand blue (buttons, links, accents)
-$secondary: #14b8d4; // cyan — secondary actions / highlights
-$accent: #6ee7f9; // logo cyan tip — sparing decorative use
+$primary: #7aa2f7; // QR mesh blue (buttons, links, accents)
+$secondary: #bb9af7; // QR mesh purple — secondary actions / highlights
+$accent: #7dcfff; // QR mesh cyan — sparing decorative use
 
-$dark: #1b1e27; // dark surface
+$dark: #1b1e27; // dark surface (opt-in dark mode)
 $dark-page: #14161d; // dark page bg
 
-$positive: #16b981; // emerald
-$negative: #ef4444; // red
-$info: #3b82f6; // blue
-$warning: #f59e0b; // amber
+$positive: #9ece6a; // QR green
+$negative: #f7768e; // QR red/magenta
+$info: #7dcfff; // QR cyan
+$warning: #e0af68; // QR yellow
 
-// Brand gradient reused across hero / logo / CTA surfaces
-$brand-gradient: linear-gradient(135deg, #5b8cff 0%, #6ee7f9 100%);
+// Brand gradient reused across hero / logo / CTA surfaces (QR mesh hues)
+$brand-gradient: linear-gradient(135deg, #7aa2f7 0%, #bb9af7 55%, #7dcfff 100%);

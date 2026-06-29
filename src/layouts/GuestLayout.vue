@@ -32,8 +32,10 @@ const appName = ref(process.env.APP_NAME);
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(900px 500px at 50% -10%, rgba(110, 231, 249, 0.18), transparent 60%),
-    radial-gradient(700px 500px at 90% 110%, rgba(79, 110, 247, 0.16), transparent 60%),
+    radial-gradient(820px 520px at 12% -8%, rgba(122, 162, 247, 0.22), transparent 58%),
+    radial-gradient(720px 480px at 92% 4%, rgba(187, 154, 247, 0.2), transparent 58%),
+    radial-gradient(760px 520px at 88% 108%, rgba(125, 207, 255, 0.18), transparent 60%),
+    radial-gradient(680px 500px at 8% 104%, rgba(158, 206, 106, 0.12), transparent 60%),
     var(--dr-bg);
 
   &__card {

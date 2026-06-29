@@ -12,6 +12,7 @@ export default boot(() => {
     Dark.set(!theme?.includes('light'));
     document.body.setAttribute('theme', theme?.replace('light', '') || '');
   } else {
-    Dark.set('auto');
+    // Default to the QR's light, pastel-on-white look; dark mode is opt-in.
+    Dark.set(false);
   }
 });
