@@ -106,6 +106,40 @@
         </q-card>
       </div>
 
+      <div v-if="data.slug" class="col-12 q-pa-md">
+        <q-card flat bordered>
+          <q-card-section class="row items-center q-py-sm">
+            <q-icon name="location_on" size="sm" class="q-mr-sm" />
+            <div class="text-subtitle1">
+              {{ pings.length }} ping{{ pings.length === 1 ? '' : 's' }}
+            </div>
+            <q-space />
+            <div v-if="lastPingAt" class="text-caption text-grey-6">Last: {{ lastPingAt }}</div>
+          </q-card-section>
+          <q-list v-if="pings.length" separator>
+            <q-expansion-item
+              v-for="p in pings"
+              :key="p.id"
+              :label="new Date(p.created_at).toLocaleString()"
+              :caption="p.note || 'No note'"
+              icon="place"
+            >
+              <iframe
+                width="100%"
+                height="300"
+                frameborder="0"
+                style="border: 0; display: block"
+                :src="`https://maps.google.com/maps?q=${p.lat},${p.lon}&z=15&output=embed`"
+                allowfullscreen
+              />
+            </q-expansion-item>
+          </q-list>
+          <q-card-section v-else class="text-caption text-grey-6 q-pt-none">
+            No pings yet.
+          </q-card-section>
+        </q-card>
+      </div>
+
       <div class="col-12 q-mb-md q-pa-md">
         <q-btn
           :disable="loading"
@@ -140,6 +174,14 @@ interface Scan {
   created_at: string;
 }
 
+interface Ping {
+  id: number;
+  note: string;
+  lat: number;
+  lon: number;
+  created_at: string;
+}
+
 const $q = useQuasar();
 const route = useRoute();
 const router = useRouter();
@@ -148,6 +190,10 @@ const defaultData: Payload = { slug: '', name: '', desc: '', target_url: null };
 const scans = ref<Scan[]>([]);
 const lastScanAt = computed(() =>
   scans.value[0] ? new Date(scans.value[0].created_at).toLocaleString() : '',
+);
+const pings = ref<Ping[]>([]);
+const lastPingAt = computed(() =>
+  pings.value[0] ? new Date(pings.value[0].created_at).toLocaleString() : '',
 );
 
 const id = ref(parseInt(route.params.id?.toString() || '0'));
@@ -503,6 +549,7 @@ onBeforeMount(async () => {
   loading.value = true;
   data.value = (await api.get(`${endpoint}/${id.value}`)).data;
   scans.value = (await api.get(`${endpoint}/${id.value}/scans`)).data;
+  pings.value = (await api.get(`${endpoint}/${id.value}/pings`)).data;
   loading.value = false;
 });
 </script>

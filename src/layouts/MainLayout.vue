@@ -87,12 +87,6 @@ const linksList: EssentialLinkProps[] = [
     icon: 'center_focus_weak',
     link: '/trackers',
   },
-  {
-    title: 'Pings',
-    caption: 'List of Tracker pings',
-    icon: 'radar',
-    link: '/pings',
-  },
 ];
 
 const $q = useQuasar();

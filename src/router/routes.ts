@@ -24,8 +24,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     meta: { auth: true },
     children: [
-      { path: '/pings', component: () => import('pages/pings/IndexPage.vue') },
-      { path: '/pings/:id', component: () => import('pages/pings/UpdatePage.vue') },
       { path: '/profile', component: () => import('pages/profile/IndexPage.vue') },
       { path: '/tokens', component: () => import('pages/tokens/IndexPage.vue') },
       { path: '/trackers', component: () => import('pages/trackers/IndexPage.vue') },
