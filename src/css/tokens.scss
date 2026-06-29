@@ -4,14 +4,15 @@
 // component pass live here so every screen inherits one cohesive system.
 
 :root {
-  // Surfaces (light, airy — echoing the QR's white mesh ground)
-  --dr-bg: #f6f8fd; // app page background
-  --dr-surface: #ffffff; // cards, headers, inputs
-  --dr-surface-2: #eef2fb; // subtle fills, hover, chips
-  --dr-border: #e7ebf6; // hairline borders
+  // Surfaces (light but easy on the eyes — muted field, off-white cards,
+  // not stark white, to cut glare)
+  --dr-bg: #dfe4ef; // app page background (calm blue-grey)
+  --dr-surface: #f5f7fb; // cards, headers, inputs (soft off-white)
+  --dr-surface-2: #e7ebf4; // subtle fills, hover, chips
+  --dr-border: #d3d9e6; // hairline borders
   --dr-text: #1b2235; // primary text
-  --dr-muted: #6b7280; // secondary text
-  --dr-faint: #9aa1b0; // tertiary text / icons
+  --dr-muted: #5d6679; // secondary text
+  --dr-faint: #8b93a5; // tertiary text / icons
 
   // Brand — the QR's soft Tokyo Night accents (blue + purple)
   --dr-primary: #7aa2f7; // QR mesh blue
@@ -107,10 +108,10 @@ body {
 .dr-mesh {
   background-color: var(--dr-surface);
   background-image:
-    radial-gradient(circle at 12% 16%, rgba(122, 162, 247, 0.28), transparent 46%),
-    radial-gradient(circle at 88% 12%, rgba(187, 154, 247, 0.26), transparent 46%),
-    radial-gradient(circle at 86% 88%, rgba(125, 207, 255, 0.22), transparent 48%),
-    radial-gradient(circle at 14% 86%, rgba(158, 206, 106, 0.16), transparent 46%);
+    radial-gradient(circle at 12% 16%, rgba(122, 162, 247, 0.16), transparent 46%),
+    radial-gradient(circle at 88% 12%, rgba(187, 154, 247, 0.15), transparent 46%),
+    radial-gradient(circle at 86% 88%, rgba(125, 207, 255, 0.12), transparent 48%),
+    radial-gradient(circle at 14% 86%, rgba(158, 206, 106, 0.1), transparent 46%);
 }
 
 // --- Inputs ------------------------------------------------------------------
