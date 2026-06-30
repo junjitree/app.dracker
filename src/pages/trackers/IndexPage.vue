@@ -60,7 +60,7 @@
             v-for="t in trackers"
             :key="t.id"
             :tracker="t"
-            :class="{ 'dr-tk__card--active': t.id === selectedId }"
+            :active="t.id === selectedId"
             @open="select"
             @delete="confirmDelete"
           />
@@ -425,12 +425,6 @@ onMounted(load);
     display: flex;
     flex-direction: column;
     gap: 12px;
-  }
-
-  &__card--active {
-    outline: 2px solid var(--dr-primary);
-    outline-offset: 0;
-    border-radius: var(--dr-r-lg);
   }
 
   &__detail {

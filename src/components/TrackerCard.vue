@@ -1,37 +1,42 @@
 <template>
-  <q-card flat class="dr-tag-card" @click="$emit('open', tracker.id)">
+  <q-card
+    flat
+    class="dr-tag-card"
+    :class="{ 'dr-tag-card--active': active }"
+    @click="$emit('open', tracker.id)"
+  >
     <q-card-section class="dr-tag-card__body">
-      <div class="dr-tag-card__top">
-        <div
-          class="dr-tag-card__icon"
-          :style="{
-            background: `${category.color}26`,
-            color: category.color,
-          }"
-        >
-          <q-icon :name="category.icon" size="26px" />
-        </div>
-
-        <q-btn flat round dense icon="more_horiz" class="dr-tag-card__menu" @click.stop>
-          <q-menu anchor="bottom right" self="top right" :offset="[0, 4]">
-            <q-list dense style="min-width: 140px">
-              <q-item v-close-popup clickable @click="$emit('open', tracker.id)">
-                <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
-                <q-item-section>Edit</q-item-section>
-              </q-item>
-              <q-item v-close-popup clickable @click="$emit('delete', tracker)">
-                <q-item-section avatar
-                  ><q-icon name="delete" size="18px" color="negative"
-                /></q-item-section>
-                <q-item-section class="text-negative">Delete</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
+      <div
+        class="dr-tag-card__icon"
+        :style="{
+          background: `${category.color}26`,
+          color: category.color,
+        }"
+      >
+        <q-icon :name="category.icon" size="24px" />
       </div>
 
-      <div class="dr-tag-card__name">{{ tracker.name || 'Untitled tag' }}</div>
-      <div class="dr-tag-card__desc">{{ tracker.desc || 'No description' }}</div>
+      <div class="dr-tag-card__text">
+        <div class="dr-tag-card__name">{{ tracker.name || 'Untitled tag' }}</div>
+        <div class="dr-tag-card__desc">{{ tracker.desc || 'No description' }}</div>
+      </div>
+
+      <q-btn flat round dense icon="more_horiz" class="dr-tag-card__menu" @click.stop>
+        <q-menu anchor="bottom right" self="top right" :offset="[0, 4]">
+          <q-list dense style="min-width: 140px">
+            <q-item v-close-popup clickable @click="$emit('open', tracker.id)">
+              <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
+              <q-item-section>Edit</q-item-section>
+            </q-item>
+            <q-item v-close-popup clickable @click="$emit('delete', tracker)">
+              <q-item-section avatar
+                ><q-icon name="delete" size="18px" color="negative"
+              /></q-item-section>
+              <q-item-section class="text-negative">Delete</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
     </q-card-section>
 
     <q-separator class="dr-tag-card__sep" />
@@ -61,7 +66,7 @@ export interface Tracker {
   updated_at: string;
 }
 
-const props = defineProps<{ tracker: Tracker }>();
+const props = defineProps<{ tracker: Tracker; active?: boolean }>();
 defineEmits<{ open: [id: number]; delete: [tracker: Tracker] }>();
 
 const category = computed(() => categoryFor(props.tracker.name, props.tracker.desc));
@@ -93,32 +98,49 @@ const updatedLabel = computed(() => {
     border-color: transparent;
   }
 
-  &__body {
-    padding: 18px 18px 14px;
+  // inset ring so the highlight is never clipped by the list's overflow
+  &--active {
+    border-color: transparent;
+    box-shadow: inset 0 0 0 2px var(--dr-primary);
+
+    &:hover {
+      box-shadow:
+        inset 0 0 0 2px var(--dr-primary),
+        var(--dr-shadow-lg);
+    }
   }
 
-  &__top {
+  &__body {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 14px;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
   }
 
   &__icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex: none;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
+  &__text {
+    flex: 1;
+    min-width: 0;
+  }
+
   &__menu {
+    flex: none;
+    align-self: flex-start;
+    margin-top: -2px;
     color: var(--dr-faint);
   }
 
   &__name {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--dr-text);
@@ -128,8 +150,8 @@ const updatedLabel = computed(() => {
   }
 
   &__desc {
-    margin-top: 2px;
-    font-size: 13.5px;
+    margin-top: 1px;
+    font-size: 13px;
     color: var(--dr-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -144,7 +166,7 @@ const updatedLabel = computed(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 11px 18px;
+    padding: 10px 16px;
   }
 
   &__slug {
