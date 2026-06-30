@@ -353,7 +353,16 @@ onMounted(load);
 
 <style scoped lang="scss">
 .dr-tk {
+  // Desktop: pin the title + columns to the viewport so each column scrolls on
+  // its own — a long tracker list no longer drags the detail pane with it.
+  @media (min-width: 1024px) {
+    height: calc(100vh - 112px); // app header (64) + page padding (2 × 24)
+    display: flex;
+    flex-direction: column;
+  }
+
   &__head {
+    flex: none;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -382,13 +391,34 @@ onMounted(load);
     gap: 22px;
     align-items: start;
 
+    @media (min-width: 1024px) {
+      flex: 1;
+      min-height: 0; // allow the grid to shrink so its cells can scroll
+      align-items: stretch;
+    }
+
     @media (max-width: 1023px) {
       grid-template-columns: 1fr;
     }
   }
 
+  &__list {
+    @media (min-width: 1024px) {
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 6px; // breathing room for the scrollbar
+    }
+  }
+
   &__search {
     margin-bottom: 14px;
+
+    @media (min-width: 1024px) {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--dr-bg);
+    }
   }
 
   &__cards {
@@ -406,6 +436,11 @@ onMounted(load);
   &__detail {
     position: relative;
     min-height: 420px;
+
+    @media (min-width: 1024px) {
+      min-height: 0;
+      overflow-y: auto;
+    }
   }
 
   &__pane--mobile-hidden {
