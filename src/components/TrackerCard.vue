@@ -98,16 +98,11 @@ const updatedLabel = computed(() => {
     border-color: transparent;
   }
 
-  // inset ring so the highlight is never clipped by the list's overflow
+  // Inset ring, drawn inside the card so the list's overflow can't clip it.
+  // !important is needed to beat Quasar's `.q-card--flat { box-shadow: none !important }`.
   &--active {
     border-color: transparent;
-    box-shadow: inset 0 0 0 2px var(--dr-primary);
-
-    &:hover {
-      box-shadow:
-        inset 0 0 0 2px var(--dr-primary),
-        var(--dr-shadow-lg);
-    }
+    box-shadow: inset 0 0 0 2px var(--dr-primary) !important;
   }
 
   &__body {
