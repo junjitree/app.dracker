@@ -11,8 +11,9 @@
     <p class="dr-finder__credit">You can close this page.</p>
   </div>
 
-  <!-- LOCATING: blank page while the browser's own location prompt is shown -->
-  <div v-else-if="locating" class="dr-finder dr-finder--blank" />
+  <!-- LOCATING: a fully blank screen (covers the layout) while the browser's
+       own location prompt is shown -->
+  <div v-else-if="locating" class="dr-blank" />
 
   <!-- FINDER -->
   <div v-else class="dr-finder">
@@ -50,6 +51,7 @@
       <q-input
         v-model="note"
         outlined
+        stack-label
         type="textarea"
         autogrow
         bg-color="white"
@@ -69,8 +71,8 @@
         size="lg"
         color="primary"
         class="dr-finder__cta full-width"
-        :icon="coords ? 'near_me' : 'location_searching'"
-        :label="coords ? 'Share my location' : 'Enable location access'"
+        :icon="coords ? 'send' : 'location_searching'"
+        :label="coords ? 'Send to owner' : 'Enable location access'"
         no-caps
         :loading="loading"
       />
@@ -261,14 +263,18 @@ onMounted(() => {
   }
 }
 
+// Full-viewport blank cover shown while the native location prompt is up,
+// hiding the layout's card/logo so the page reads as truly blank.
+.dr-blank {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--dr-bg);
+}
+
 .dr-finder {
   text-align: center;
   padding: 8px 4px 4px;
-
-  // blank holding state while the native location prompt is up
-  &--blank {
-    min-height: 240px;
-  }
 
   &__badge {
     width: 88px;
