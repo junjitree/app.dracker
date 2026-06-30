@@ -145,23 +145,25 @@
               <q-btn unelevated color="primary" icon="qr_code_2" label="Show QR" no-caps @click="openQr" />
             </div>
 
-            <!-- the rest, tucked into a dropdown -->
-            <div v-if="others.length" class="dr-detail__section">
+            <!-- full ping history, tucked into a dropdown (stable order) -->
+            <div v-if="pings.length > 1" class="dr-detail__section">
               <q-expansion-item
                 icon="history"
-                :label="`${others.length} other ping${others.length === 1 ? '' : 's'}`"
+                :label="`All ${pings.length} pings`"
                 dense-toggle
                 class="dr-detail__more"
               >
                 <q-list separator>
                   <q-item
-                    v-for="p in others"
+                    v-for="p in pings"
                     :key="p.id"
                     clickable
+                    :active="p.id === focused.id"
+                    active-class="dr-detail__ping--active"
                     @click="focusedId = p.id"
                   >
                     <q-item-section avatar>
-                      <q-icon name="place" color="grey-5" />
+                      <q-icon name="place" :color="p.id === focused.id ? 'primary' : 'grey-5'" />
                     </q-item-section>
                     <q-item-section>
                       <q-item-label>{{ p.note || 'No note' }}</q-item-label>
@@ -246,8 +248,6 @@ const lastScan = computed(() => scans.value[0]?.created_at ?? null);
 const focused = computed<Ping>(
   () => pings.value.find((p) => p.id === focusedId.value) ?? (pings.value[0] as Ping),
 );
-// every ping except the one on the map — these live in the dropdown
-const others = computed(() => pings.value.filter((p) => p.id !== focused.value?.id));
 
 const rel = (iso: string) => {
   try {
@@ -675,6 +675,11 @@ onMounted(load);
     border: 1px solid var(--dr-border);
     border-radius: var(--dr-r);
     overflow: hidden;
+  }
+
+  &__ping--active {
+    background: var(--dr-primary-soft);
+    color: var(--dr-text);
   }
 
   &__scans {
