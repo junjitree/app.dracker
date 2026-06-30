@@ -554,6 +554,11 @@ onMounted(load);
     align-items: center;
     gap: 14px;
     margin-bottom: 20px;
+
+    // phones: let the action buttons drop to their own full-width row
+    @media (max-width: 599px) {
+      flex-wrap: wrap;
+    }
   }
 
   &__back {
@@ -656,6 +661,14 @@ onMounted(load);
   &__actions {
     display: flex;
     gap: 8px;
+
+    @media (max-width: 599px) {
+      width: 100%;
+
+      :deep(.q-btn) {
+        flex: 1;
+      }
+    }
   }
 
   &__more {
