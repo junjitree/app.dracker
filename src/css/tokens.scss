@@ -114,6 +114,35 @@ body {
     radial-gradient(circle at 14% 86%, rgba(158, 206, 106, 0.1), transparent 46%);
 }
 
+// --- Scrollbars --------------------------------------------------------------
+// Subtle, themed scrollbars instead of the stark native default (which looked
+// glaringly white, especially in dark mode).
+html {
+  scrollbar-width: thin; // Firefox
+  scrollbar-color: var(--dr-border) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dr-border);
+  border-radius: var(--dr-r-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dr-faint);
+  background-clip: padding-box;
+}
+
 // --- Inputs ------------------------------------------------------------------
 .q-field--outlined .q-field__control {
   border-radius: var(--dr-r-sm);
