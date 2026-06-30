@@ -11,6 +11,9 @@
     <p class="dr-finder__credit">You can close this page.</p>
   </div>
 
+  <!-- LOCATING: blank page while the browser's own location prompt is shown -->
+  <div v-else-if="locating" class="dr-finder dr-finder--blank" />
+
   <!-- FINDER -->
   <div v-else class="dr-finder">
     <!-- LOST: owner contact (only when the tag is marked lost) -->
@@ -66,8 +69,8 @@
         size="lg"
         color="primary"
         class="dr-finder__cta full-width"
-        icon="near_me"
-        label="Share my location"
+        :icon="coords ? 'near_me' : 'location_searching'"
+        :label="coords ? 'Share my location' : 'Enable location access'"
         no-caps
         :loading="loading"
       />
@@ -99,8 +102,10 @@ const route = useRoute();
 const dandoru = ref(false);
 const loading = ref(false);
 const locationBlocked = ref(false);
+const locating = ref(true);
 const note = ref('');
 const slug = ref(route.params.slug?.toString() || '');
+const coords = ref<{ lat: number; lon: number } | null>(null);
 
 const lost = ref(false);
 const info = ref<PublicInfo>({
@@ -111,55 +116,68 @@ const info = ref<PublicInfo>({
   contact_address: null,
 });
 
-onMounted(async () => {
-  try {
-    const { data } = await api.get<PublicInfo>(`v1/ping/${slug.value}`);
-    info.value = data;
-    lost.value = !!data.is_lost;
-  } catch (err) {
-    console.error(err);
+// Fire the browser's native location prompt. While it's pending the page stays
+// blank; once the finder answers we render the rest.
+function requestLocation() {
+  if (!navigator.geolocation) {
+    locating.value = false;
+    locationBlocked.value = true;
+    return;
   }
-});
+  locating.value = true;
+  locationBlocked.value = false;
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      coords.value = { lat: position.coords.latitude, lon: position.coords.longitude };
+      locating.value = false;
+    },
+    (err) => {
+      coords.value = null;
+      locationBlocked.value = true;
+      locating.value = false;
+      console.error(err);
+    },
+    { enableHighAccuracy: true, timeout: 10000 },
+  );
+}
 
 const onSubmit = () => {
-  if (!navigator.geolocation) {
-    $q.notify({ color: 'negative', message: 'Geolocation not supported on this device' });
+  // No fix yet (blocked/denied) — re-open the browser prompt instead of sending.
+  if (!coords.value) {
+    requestLocation();
     return;
   }
 
   loading.value = true;
-  locationBlocked.value = false;
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      api
-        .post('v1/ping', {
-          slug: slug.value,
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-          note: note.value,
-        })
-        .then(() => {
-          dandoru.value = true;
-        })
-        .catch((err) => {
-          $q.notify({
-            color: 'negative',
-            message: err.response?.data?.msg || 'Could not send ping',
-          });
-        })
-        .finally(() => {
-          loading.value = false;
-        });
-    },
-    (err) => {
+  api
+    .post('v1/ping', {
+      slug: slug.value,
+      lat: coords.value.lat,
+      lon: coords.value.lon,
+      note: note.value,
+    })
+    .then(() => {
+      dandoru.value = true;
+    })
+    .catch((err) => {
+      $q.notify({ color: 'negative', message: err.response?.data?.msg || 'Could not send ping' });
+    })
+    .finally(() => {
       loading.value = false;
-      locationBlocked.value = true;
-      $q.notify({ color: 'negative', message: `Location error: ${err.message}` });
-    },
-    { enableHighAccuracy: true, timeout: 10000 },
-  );
+    });
 };
+
+onMounted(() => {
+  // ask for location immediately, before the page renders
+  requestLocation();
+  api
+    .get<PublicInfo>(`v1/ping/${slug.value}`)
+    .then(({ data }) => {
+      info.value = data;
+      lost.value = !!data.is_lost;
+    })
+    .catch((err) => console.error(err));
+});
 </script>
 
 <style scoped lang="scss">
@@ -246,6 +264,11 @@ const onSubmit = () => {
 .dr-finder {
   text-align: center;
   padding: 8px 4px 4px;
+
+  // blank holding state while the native location prompt is up
+  &--blank {
+    min-height: 240px;
+  }
 
   &__badge {
     width: 88px;
