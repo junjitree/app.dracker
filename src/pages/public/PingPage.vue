@@ -13,12 +13,32 @@
 
   <!-- FINDER -->
   <div v-else class="dr-finder">
-    <div class="dr-finder__badge">
+    <!-- LOST: owner contact (only when the tag is marked lost) -->
+    <div v-if="lost" class="dr-lost">
+      <div class="dr-lost__badge"><q-icon name="report" size="30px" /></div>
+      <h1 class="dr-lost__title">This item is marked lost</h1>
+      <p v-if="info.message" class="dr-lost__msg">“{{ info.message }}”</p>
+      <p class="dr-lost__help">Please reach the owner so they can get it back:</p>
+      <div class="dr-lost__contact">
+        <a v-if="info.contact_phone" :href="`tel:${info.contact_phone}`" class="dr-lost__row">
+          <q-icon name="call" size="20px" />
+          <span>{{ info.contact_phone }}</span>
+        </a>
+        <div v-if="info.contact_address" class="dr-lost__row dr-lost__row--static">
+          <q-icon name="place" size="20px" />
+          <span>{{ info.contact_address }}</span>
+        </div>
+      </div>
+      <q-separator class="dr-lost__sep" />
+      <p class="dr-lost__or">You can also share your location below.</p>
+    </div>
+
+    <div v-if="!lost" class="dr-finder__badge">
       <q-icon name="my_location" size="36px" />
     </div>
 
-    <h1 class="dr-finder__title">You found a tagged item</h1>
-    <p class="dr-finder__text">
+    <h1 v-if="!lost" class="dr-finder__title">You found a tagged item</h1>
+    <p v-if="!lost" class="dr-finder__text">
       Share where you are right now so the owner can come and recover it. Your location is sent
       <strong>only to them</strong> — nothing is posted publicly.
     </p>
@@ -62,8 +82,16 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
 import { api } from 'src/boot/axios';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+
+interface PublicInfo {
+  name: string;
+  is_lost: boolean;
+  message: string | null;
+  contact_phone: string | null;
+  contact_address: string | null;
+}
 
 const $q = useQuasar();
 const route = useRoute();
@@ -73,6 +101,25 @@ const loading = ref(false);
 const locationBlocked = ref(false);
 const note = ref('');
 const slug = ref(route.params.slug?.toString() || '');
+
+const lost = ref(false);
+const info = ref<PublicInfo>({
+  name: '',
+  is_lost: false,
+  message: null,
+  contact_phone: null,
+  contact_address: null,
+});
+
+onMounted(async () => {
+  try {
+    const { data } = await api.get<PublicInfo>(`v1/ping/${slug.value}`);
+    info.value = data;
+    lost.value = !!data.is_lost;
+  } catch (err) {
+    console.error(err);
+  }
+});
 
 const onSubmit = () => {
   if (!navigator.geolocation) {
@@ -116,6 +163,86 @@ const onSubmit = () => {
 </script>
 
 <style scoped lang="scss">
+.dr-lost {
+  text-align: center;
+  border: 1px solid var(--dr-border);
+  border-radius: var(--dr-r-lg);
+  background: var(--dr-surface);
+  padding: 24px 20px;
+  margin-bottom: 26px;
+
+  &__badge {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: linear-gradient(135deg, #f7768e 0%, #ff9e64 100%);
+    box-shadow: 0 10px 24px rgba(247, 118, 142, 0.4);
+  }
+
+  &__title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    color: var(--dr-text);
+  }
+
+  &__msg {
+    font-style: italic;
+    font-size: 15px;
+    color: var(--dr-text);
+    margin: 0 auto 12px;
+    max-width: 34ch;
+  }
+
+  &__help {
+    font-size: 14px;
+    color: var(--dr-muted);
+    margin: 0 0 14px;
+  }
+
+  &__contact {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: var(--dr-r);
+    background: var(--dr-surface-2);
+    color: var(--dr-primary);
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+
+    &--static {
+      color: var(--dr-text);
+      font-weight: 600;
+      font-size: 15px;
+    }
+  }
+
+  &__sep {
+    margin: 20px 0 12px;
+  }
+
+  &__or {
+    font-size: 13px;
+    color: var(--dr-faint);
+    margin: 0;
+  }
+}
+
 .dr-finder {
   text-align: center;
   padding: 8px 4px 4px;

@@ -17,7 +17,10 @@
       </div>
 
       <div class="dr-tag-card__text">
-        <div class="dr-tag-card__name">{{ tracker.name || 'Untitled tag' }}</div>
+        <div class="dr-tag-card__name">
+          <span class="dr-tag-card__name-text">{{ tracker.name || 'Untitled tag' }}</span>
+          <q-badge v-if="tracker.is_lost" color="negative" label="LOST" />
+        </div>
         <div class="dr-tag-card__desc">{{ tracker.desc || 'No description' }}</div>
       </div>
 
@@ -62,6 +65,8 @@ export interface Tracker {
   name: string;
   desc: string;
   target_url?: string | null;
+  is_lost?: boolean;
+  message?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -135,13 +140,19 @@ const updatedLabel = computed(() => {
   }
 
   &__name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--dr-text);
-    white-space: nowrap;
+  }
+
+  &__name-text {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__desc {

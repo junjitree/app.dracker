@@ -33,6 +33,25 @@
           hint="Where this tag redirects when scanned. Leave blank to use the public ping page. Changing it does not require reprinting the QR."
         />
 
+        <q-separator spaced />
+
+        <q-toggle v-model="data.is_lost" label="Mark as lost" color="negative" />
+        <div v-if="data.is_lost" class="dr-tdialog__lost">
+          <q-input
+            v-model="data.message"
+            filled
+            type="textarea"
+            autogrow
+            label="Message to finder (optional)"
+            hint="e.g. Reward offered — please call anytime"
+          />
+          <div class="text-caption text-grey-6">
+            Your phone &amp; address from your
+            <router-link to="/profile" class="text-primary">profile</router-link>
+            are shown to whoever scans this tag while it's lost.
+          </div>
+        </div>
+
         <div class="dr-tdialog__foot">
           <q-btn v-close-popup flat label="Cancel" no-caps />
           <q-btn
@@ -58,6 +77,8 @@ interface Payload {
   name: string;
   desc: string;
   target_url: string | null;
+  is_lost: boolean;
+  message: string | null;
 }
 
 const props = defineProps<{ modelValue: boolean; trackerId: number | null }>();
@@ -72,7 +93,13 @@ const show = computed({
 });
 const isEdit = computed(() => props.trackerId != null);
 
-const defaultData = (): Payload => ({ name: '', desc: '', target_url: null });
+const defaultData = (): Payload => ({
+  name: '',
+  desc: '',
+  target_url: null,
+  is_lost: false,
+  message: '',
+});
 const data = ref<Payload>(defaultData());
 const loading = ref(false);
 
@@ -84,7 +111,13 @@ const load = async () => {
   loading.value = true;
   try {
     const t = (await api.get(`${endpoint}/${props.trackerId}`)).data;
-    data.value = { name: t.name, desc: t.desc, target_url: t.target_url ?? null };
+    data.value = {
+      name: t.name,
+      desc: t.desc,
+      target_url: t.target_url ?? null,
+      is_lost: t.is_lost ?? false,
+      message: t.message ?? '',
+    };
   } catch (err) {
     console.error(err);
   } finally {

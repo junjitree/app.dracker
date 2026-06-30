@@ -49,6 +49,21 @@
         </q-input>
       </div>
 
+      <div class="col-12 q-pa-md">
+        <div class="text-subtitle2 text-grey-7">Lost &amp; found contact</div>
+        <div class="text-caption text-grey-6">
+          Shown to anyone who scans a tag you've marked as lost.
+        </div>
+      </div>
+
+      <div class="col-xs-12 col-md-6 q-pa-md">
+        <q-input v-model="data.phone" :disable="disable" filled type="tel" label="Phone" />
+      </div>
+
+      <div class="col-xs-12 col-md-6 q-pa-md">
+        <q-input v-model="data.address" :disable="disable" filled type="textarea" autogrow label="Address" />
+      </div>
+
       <div class="col-12 q-mb-md q-pa-md">
         <q-btn
           :disable="loading"
@@ -74,6 +89,8 @@ interface UserPayload {
   email: string;
   given_name: string;
   surname: string;
+  phone: string | null;
+  address: string | null;
 }
 
 const $q = useQuasar();
@@ -88,6 +105,8 @@ const defaultData: UserPayload = {
   email: '',
   given_name: '',
   surname: '',
+  phone: '',
+  address: '',
 };
 
 const data = ref(defaultData);

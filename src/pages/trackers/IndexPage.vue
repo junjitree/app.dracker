@@ -102,11 +102,22 @@
                 <q-icon :name="cat.icon" size="24px" />
               </div>
               <div class="dr-detail__heading">
-                <div class="dr-detail__name">{{ detail.name || 'Untitled tag' }}</div>
+                <div class="dr-detail__name">
+                  {{ detail.name || 'Untitled tag' }}
+                  <q-badge v-if="detail.is_lost" color="negative" label="LOST" class="q-ml-sm" />
+                </div>
                 <div class="dr-detail__desc">{{ detail.desc || 'No description' }}</div>
               </div>
               <q-space />
               <div class="dr-detail__actions">
+                <q-btn
+                  :outline="!detail.is_lost"
+                  :color="detail.is_lost ? 'negative' : 'primary'"
+                  :icon="detail.is_lost ? 'check_circle' : 'report'"
+                  :label="detail.is_lost ? 'Mark found' : 'Mark lost'"
+                  no-caps
+                  @click="toggleLost"
+                />
                 <q-btn outline color="primary" icon="edit" label="Edit" no-caps @click="openEdit" />
                 <q-btn outline color="secondary" icon="qr_code_2" label="QR" no-caps @click="openQr" />
               </div>
@@ -304,6 +315,32 @@ const openEdit = () => {
 };
 const openQr = () => {
   qrDialog.value = true;
+};
+const toggleLost = () => {
+  const d = detail.value;
+  if (!d) return;
+  const nowLost = !d.is_lost;
+  api
+    .put(`/v1/trackers/${d.id}`, {
+      name: d.name,
+      desc: d.desc,
+      target_url: d.target_url ?? null,
+      is_lost: nowLost,
+      message: d.message ?? '',
+    })
+    .then(() => {
+      $q.notify({
+        color: nowLost ? 'warning' : 'positive',
+        icon: nowLost ? 'report' : 'check',
+        message: nowLost ? 'Tag marked as lost' : 'Tag marked as found',
+      });
+      loadDetail(d.id);
+      load();
+    })
+    .catch((err) => {
+      console.error(err);
+      $q.notify({ color: 'negative', message: 'Could not update' });
+    });
 };
 const onSaved = (id: number) => {
   load();
