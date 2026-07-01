@@ -3,6 +3,16 @@
     <q-spinner-gears size="10em" color="primary" />
   </q-inner-loading>
 
+  <q-btn
+    flat
+    no-caps
+    icon="arrow_back"
+    label="Back to tags"
+    color="primary"
+    to="/trackers"
+    class="q-mb-sm"
+  />
+
   <q-form class="q-gutter-xl" :disable="loading" @submit="onSubmit">
     <div class="row">
       <q-card-section class="text-h4 col-12 q-mt-md"> Edit Profile </q-card-section>

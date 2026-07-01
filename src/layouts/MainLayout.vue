@@ -33,6 +33,15 @@
           </template>
           <div class="q-pa-sm">
             <q-list dense>
+              <q-item to="/trackers">
+                <q-item-section avatar>
+                  <q-icon name="local_offer" />
+                </q-item-section>
+                <q-item-section>Tags</q-item-section>
+              </q-item>
+
+              <q-separator class="q-my-xs" />
+
               <q-item :to="`/profile`">
                 <q-item-section avatar>
                   <q-icon name="person" />

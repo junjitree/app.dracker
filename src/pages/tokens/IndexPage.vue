@@ -1,4 +1,14 @@
 <template>
+  <q-btn
+    flat
+    no-caps
+    icon="arrow_back"
+    label="Back to tags"
+    color="primary"
+    to="/trackers"
+    class="q-mb-md"
+  />
+
   <AppTable :columns="columns" :trigger="trigger" title="Sessions" endpoint="v1/tokens" no-export>
     <template #actions>
       <q-btn
