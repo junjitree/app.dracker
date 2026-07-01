@@ -93,8 +93,8 @@ const create = () => {
 
 <style scoped lang="scss">
 // Mirrors TrackerCard's chrome so the create card sits in the list as one of
-// the family: dynamic category icon on the left, seamless (borderless) name /
-// desc inputs styled like the card text, and the save action in the footer.
+// the family: dynamic category icon, borderless inputs that render exactly
+// like the card's name / desc text, and the save action in the footer.
 .dr-new-card {
   border: 1px solid var(--dr-border);
   border-radius: var(--dr-r-lg);
@@ -127,28 +127,66 @@ const create = () => {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px; // matches the tag card's desc margin-top
   }
 
-  // seamless inputs — no border, caret sits left of the placeholder
+  // strip all field chrome so only the text remains, sized like the card
   &__name :deep(.q-field__control),
-  &__desc :deep(.q-field__control) {
-    min-height: unset;
+  &__desc :deep(.q-field__control),
+  &__name :deep(.q-field__native),
+  &__desc :deep(.q-field__native) {
+    min-height: 0;
     padding: 0;
+  }
+
+  &__name :deep(.q-field__control-container),
+  &__desc :deep(.q-field__control-container) {
+    position: relative;
   }
 
   &__name :deep(input) {
     font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.02em;
+    line-height: 1.35;
     color: var(--dr-text);
-    padding: 2px 0;
   }
 
   &__desc :deep(input) {
     font-size: 13px;
+    line-height: 1.35;
     color: var(--dr-muted);
-    padding: 1px 0;
+  }
+
+  // Resting fake caret: a blinking bar at the very start of an empty field
+  // (a real <input> only shows a caret while focused). Hidden once focused
+  // (real caret takes over) or once the field has a value.
+  &__name :deep(.q-field__control-container)::after,
+  &__desc :deep(.q-field__control-container)::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 1.5px;
+    transform: translateY(-50%);
+    background: var(--dr-primary);
+    animation: dr-caret 1.06s steps(1, start) infinite;
+    pointer-events: none;
+  }
+
+  &__name :deep(.q-field__control-container)::after {
+    height: 17px;
+  }
+
+  &__desc :deep(.q-field__control-container)::after {
+    height: 14px;
+  }
+
+  &__name :deep(.q-field__control-container:has(input:focus))::after,
+  &__name :deep(.q-field__control-container:has(input:not(:placeholder-shown)))::after,
+  &__desc :deep(.q-field__control-container:has(input:focus))::after,
+  &__desc :deep(.q-field__control-container:has(input:not(:placeholder-shown)))::after {
+    display: none;
   }
 
   &__sep {
@@ -159,6 +197,12 @@ const create = () => {
     display: flex;
     justify-content: flex-end;
     padding: 10px 16px;
+  }
+}
+
+@keyframes dr-caret {
+  50% {
+    opacity: 0;
   }
 }
 </style>
