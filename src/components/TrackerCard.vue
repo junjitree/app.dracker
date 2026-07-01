@@ -89,6 +89,9 @@ const updatedLabel = computed(() => {
 .dr-tag-card {
   border: 1px solid var(--dr-border);
   border-radius: var(--dr-r-lg);
+  // Clip the full-bleed separator to the rounded corners so its ends don't
+  // ride over the card's outer border.
+  overflow: hidden;
   background: var(--dr-surface);
   box-shadow: var(--dr-shadow-sm);
   cursor: pointer;
