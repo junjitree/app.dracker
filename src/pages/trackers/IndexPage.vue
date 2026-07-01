@@ -110,11 +110,15 @@
               </div>
               <q-space />
               <div class="dr-detail__actions">
-                <q-toggle
-                  :model-value="detail.is_lost"
-                  label="Lost"
+                <q-btn
+                  :outline="!detail.is_lost"
+                  :unelevated="detail.is_lost"
                   color="negative"
-                  @update:model-value="toggleLost"
+                  icon="report"
+                  label="Lost"
+                  no-caps
+                  class="dr-detail__act-btn"
+                  @click="toggleLost(!detail.is_lost)"
                 />
                 <q-btn
                   outline
