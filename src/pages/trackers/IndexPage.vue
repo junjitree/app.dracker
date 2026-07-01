@@ -502,6 +502,7 @@ onMounted(load);
     // keep the icon + label on one line in the narrow col-4
     :deep(.q-btn__content) {
       flex-wrap: nowrap;
+      white-space: nowrap;
     }
   }
 
