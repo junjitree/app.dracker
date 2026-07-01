@@ -689,7 +689,7 @@ onMounted(load);
 
   // Edit + QR share a min width so they're the same size
   &__act-btn {
-    min-width: 92px;
+    min-width: 96px;
   }
 
   &__more {
