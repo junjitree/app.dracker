@@ -7,24 +7,37 @@
           {{ count === null ? '…' : count }} {{ count === 1 ? 'tag' : 'tags' }} registered
         </p>
       </div>
-      <q-btn unelevated color="primary" icon="add" label="New tag" no-caps @click="openCreate" />
     </header>
 
     <div class="dr-tk__layout">
       <!-- LEFT — list -->
       <aside class="dr-tk__list" :class="{ 'dr-tk__pane--mobile-hidden': isMobile && selectedId }">
-        <q-input
-          v-model="search"
-          outlined
-          dense
-          clearable
-          debounce="300"
-          placeholder="Search tags…"
-          class="dr-tk__search"
-          @update:model-value="load"
-        >
-          <template #prepend><q-icon name="search" /></template>
-        </q-input>
+        <div class="row q-col-gutter-sm items-stretch dr-tk__search">
+          <div class="col-8">
+            <q-input
+              v-model="search"
+              outlined
+              dense
+              clearable
+              debounce="300"
+              placeholder="Search tags…"
+              @update:model-value="load"
+            >
+              <template #prepend><q-icon name="search" /></template>
+            </q-input>
+          </div>
+          <div class="col-4">
+            <q-btn
+              unelevated
+              color="primary"
+              icon="add"
+              label="New tag"
+              no-caps
+              class="full-width full-height"
+              @click="openCreate"
+            />
+          </div>
+        </div>
 
         <div v-if="loading" class="dr-tk__cards">
           <q-card v-for="n in 4" :key="n" flat class="dr-skel">
