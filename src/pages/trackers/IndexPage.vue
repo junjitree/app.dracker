@@ -3,33 +3,18 @@
     <div class="dr-tk__layout">
       <!-- LEFT — list -->
       <aside class="dr-tk__list" :class="{ 'dr-tk__pane--mobile-hidden': isMobile && selectedId }">
-        <div class="row q-col-gutter-x-sm items-center dr-tk__search">
-          <div class="col-8">
-            <q-input
-              v-model="search"
-              outlined
-              dense
-              clearable
-              debounce="300"
-              placeholder="Search tags…"
-              @update:model-value="load"
-            >
-              <template #prepend><q-icon name="search" /></template>
-            </q-input>
-          </div>
-          <div class="col-4">
-            <q-btn
-              unelevated
-              color="primary"
-              icon="add"
-              label="New tag"
-              no-caps
-              padding="8px 8px"
-              class="full-width dr-tk__new-btn"
-              @click="openCreate"
-            />
-          </div>
-        </div>
+        <q-input
+          v-model="search"
+          outlined
+          dense
+          clearable
+          debounce="300"
+          placeholder="Search tags…"
+          class="dr-tk__search"
+          @update:model-value="load"
+        >
+          <template #prepend><q-icon name="search" /></template>
+        </q-input>
 
         <div v-if="loading" class="dr-tk__cards">
           <q-card v-for="n in 4" :key="n" flat class="dr-skel">
@@ -39,37 +24,28 @@
           </q-card>
         </div>
 
-        <div v-else-if="trackers.length === 0" class="dr-empty dr-mesh">
-          <div class="dr-empty__icon"><q-icon name="qr_code_2" size="34px" /></div>
-          <h2 class="dr-empty__title">{{ search ? 'No matching tags' : 'No tags yet' }}</h2>
-          <p class="dr-empty__text">
+        <template v-else>
+          <div class="dr-tk__cards">
+            <!-- fillable create card, styled like a tag card -->
+            <NewTagCard v-if="!search" @created="onSaved" />
+            <TrackerCard
+              v-for="t in trackers"
+              :key="t.id"
+              :tracker="t"
+              :active="t.id === selectedId"
+              @open="select"
+              @delete="confirmDelete"
+            />
+          </div>
+
+          <p v-if="trackers.length === 0" class="dr-tk__empty-hint">
             {{
               search
-                ? 'Try a different search term.'
-                : 'Create your first tag, print the QR, and stick it on anything you want to keep track of.'
+                ? 'No matching tags.'
+                : 'Create your first tag above — print its QR and stick it on anything you want to keep track of.'
             }}
           </p>
-          <q-btn
-            v-if="!search"
-            unelevated
-            color="primary"
-            icon="add"
-            label="Create a tag"
-            no-caps
-            @click="openCreate"
-          />
-        </div>
-
-        <div v-else class="dr-tk__cards">
-          <TrackerCard
-            v-for="t in trackers"
-            :key="t.id"
-            :tracker="t"
-            :active="t.id === selectedId"
-            @open="select"
-            @delete="confirmDelete"
-          />
-        </div>
+        </template>
       </aside>
 
       <!-- RIGHT — detail -->
@@ -220,6 +196,7 @@
 <script setup lang="ts">
 import TrackerCard, { type Tracker } from 'components/TrackerCard.vue';
 import TrackerDialog from 'components/TrackerDialog.vue';
+import NewTagCard from 'components/NewTagCard.vue';
 import QrDialog from 'components/QrDialog.vue';
 import { useQuasar } from 'quasar';
 import { api } from 'src/boot/axios';
@@ -327,10 +304,6 @@ const back = () => {
   router.replace({ query: q }).catch((err) => console.error(err));
 };
 
-const openCreate = () => {
-  dialogId.value = null;
-  dialog.value = true;
-};
 const openEdit = () => {
   dialogId.value = selectedId.value;
   dialog.value = true;
@@ -457,14 +430,12 @@ onMounted(load);
     }
   }
 
-  &__new-btn {
-    min-height: 40px; // match the dense search input
-
-    // keep the icon + label on one line in the narrow col-4
-    :deep(.q-btn__content) {
-      flex-wrap: nowrap;
-      white-space: nowrap;
-    }
+  &__empty-hint {
+    margin: 14px 4px 0;
+    color: var(--dr-muted);
+    font-size: 13.5px;
+    line-height: 1.5;
+    text-align: center;
   }
 
   &__cards {
@@ -513,40 +484,6 @@ onMounted(load);
   border-radius: var(--dr-r-lg);
   padding: 16px;
   background: var(--dr-surface);
-}
-
-.dr-empty {
-  text-align: center;
-  padding: 44px 22px;
-  border: 1px solid var(--dr-border);
-  border-radius: var(--dr-r-lg);
-
-  &__icon {
-    width: 68px;
-    height: 68px;
-    border-radius: 20px;
-    background: var(--dr-primary-soft);
-    color: var(--dr-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-  }
-
-  &__title {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin: 0 0 8px;
-    color: var(--dr-text);
-  }
-
-  &__text {
-    color: var(--dr-muted);
-    font-size: 14px;
-    line-height: 1.5;
-    margin: 0 0 18px;
-  }
 }
 
 .dr-detail {
