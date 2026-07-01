@@ -1,14 +1,5 @@
 <template>
   <div class="dr-tk">
-    <header class="dr-tk__head">
-      <div>
-        <h1 class="dr-tk__title">Your tags</h1>
-        <p class="dr-tk__sub">
-          {{ count === null ? '…' : count }} {{ count === 1 ? 'tag' : 'tags' }} registered
-        </p>
-      </div>
-    </header>
-
     <div class="dr-tk__layout">
       <!-- LEFT — list -->
       <aside class="dr-tk__list" :class="{ 'dr-tk__pane--mobile-hidden': isMobile && selectedId }">
@@ -257,7 +248,6 @@ const isMobile = computed(() => $q.screen.lt.md);
 
 // list state
 const trackers = ref<Tracker[]>([]);
-const count = ref<number | null>(null);
 const loading = ref(true);
 const search = ref('');
 
@@ -292,11 +282,6 @@ const rel = (iso: string) => {
 const load = () => {
   loading.value = true;
   const params = { take: 100, sort: 'updated_at', desc: true, q: search.value || undefined };
-
-  api
-    .get('/v1/trackers/count', { params })
-    .then(({ data }) => (count.value = data))
-    .catch((err) => console.error(err));
 
   api
     .get('/v1/trackers', { params })
@@ -434,30 +419,6 @@ onMounted(load);
     height: calc(100vh - 112px); // app header (64) + page padding (2 × 24)
     display: flex;
     flex-direction: column;
-  }
-
-  &__head {
-    flex: none;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 22px;
-  }
-
-  &__title {
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-    margin: 0;
-    color: var(--dr-text);
-  }
-
-  &__sub {
-    margin: 4px 0 0;
-    color: var(--dr-muted);
-    font-size: 14px;
   }
 
   &__layout {
