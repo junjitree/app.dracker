@@ -2,62 +2,122 @@
   <q-card
     flat
     class="dr-tag-card"
-    :class="{ 'dr-tag-card--active': active }"
-    @click="$emit('open', tracker.id)"
+    :class="{ 'dr-tag-card--active': active, 'dr-tag-card--new': !isEdit }"
+    @click="onCardClick"
   >
     <q-card-section class="dr-tag-card__body">
       <div
         class="dr-tag-card__icon"
-        :style="{
-          background: `${category.color}26`,
-          color: category.color,
-        }"
+        :style="{ background: `${category.color}26`, color: category.color }"
       >
         <q-icon :name="category.icon" size="24px" />
       </div>
 
       <div class="dr-tag-card__text">
-        <div class="dr-tag-card__name">
-          <span class="dr-tag-card__name-text">{{ tracker.name || 'Untitled tag' }}</span>
-          <q-badge v-if="tracker.is_lost" color="negative" label="LOST" />
+        <!-- NAME -->
+        <div v-if="!editingName" class="dr-tag-card__name" @click.stop="editingName = true">
+          <span
+            class="dr-tag-card__name-text"
+            :class="{ 'dr-tag-card__name-text--empty': !name }"
+          >
+            {{ name || 'Tag name' }}
+          </span>
+          <q-badge v-if="tracker && tracker.is_lost" color="negative" label="LOST" />
+          <q-icon name="edit" size="14px" class="dr-tag-card__edit-hint" />
         </div>
-        <div class="dr-tag-card__desc">{{ tracker.desc || 'No description' }}</div>
+        <q-input
+          v-else
+          v-model="name"
+          dense
+          borderless
+          autofocus
+          placeholder="Tag name"
+          maxlength="80"
+          class="dr-tag-card__input dr-tag-card__input--name"
+          :disable="saving"
+          @click.stop
+          @keyup.enter="editingName = false"
+          @blur="editingName = false"
+        />
+
+        <!-- DESCRIPTION -->
+        <div v-if="!editingDesc" class="dr-tag-card__desc" @click.stop="editingDesc = true">
+          <span
+            class="dr-tag-card__desc-text"
+            :class="{ 'dr-tag-card__desc-text--empty': !desc }"
+          >
+            {{ desc || 'Description (optional)' }}
+          </span>
+          <q-icon name="edit" size="14px" class="dr-tag-card__edit-hint" />
+        </div>
+        <q-input
+          v-else
+          v-model="desc"
+          dense
+          borderless
+          autofocus
+          placeholder="Description (optional)"
+          maxlength="120"
+          class="dr-tag-card__input dr-tag-card__input--desc"
+          :disable="saving"
+          @click.stop
+          @keyup.enter="editingDesc = false"
+          @blur="editingDesc = false"
+        />
       </div>
 
-      <q-btn flat round dense icon="more_horiz" class="dr-tag-card__menu" @click.stop>
-        <q-menu anchor="bottom right" self="top right" :offset="[0, 4]">
-          <q-list dense style="min-width: 140px">
-            <q-item v-close-popup clickable @click="$emit('open', tracker.id)">
-              <q-item-section avatar><q-icon name="edit" size="18px" /></q-item-section>
-              <q-item-section>Edit</q-item-section>
-            </q-item>
-            <q-item v-close-popup clickable @click="$emit('delete', tracker)">
-              <q-item-section avatar
-                ><q-icon name="delete" size="18px" color="negative"
-              /></q-item-section>
-              <q-item-section class="text-negative">Delete</q-item-section>
-            </q-item>
-          </q-list>
-        </q-menu>
+      <!-- top-right: save when dirty, otherwise a delete button (existing tags only) -->
+      <q-btn
+        v-if="dirty"
+        flat
+        round
+        dense
+        color="primary"
+        icon="save"
+        class="dr-tag-card__action"
+        :loading="saving"
+        :disable="!name.trim()"
+        @click.stop="save"
+      >
+        <q-tooltip>Save</q-tooltip>
+      </q-btn>
+      <q-btn
+        v-else-if="isEdit"
+        flat
+        round
+        dense
+        icon="delete"
+        class="dr-tag-card__action dr-tag-card__delete"
+        @click.stop="emitDelete"
+      >
+        <q-tooltip>Delete</q-tooltip>
       </q-btn>
     </q-card-section>
 
     <q-separator class="dr-tag-card__sep" />
 
     <q-card-section class="dr-tag-card__foot">
-      <span class="dr-tag-card__slug">
-        <q-icon name="qr_code_2" size="15px" />
-        {{ tracker.slug ?? '—' }}
-      </span>
-      <span class="dr-tag-card__time">{{ updatedLabel }}</span>
+      <template v-if="isEdit">
+        <span class="dr-tag-card__slug">
+          <q-icon name="qr_code_2" size="15px" />
+          {{ tracker?.slug ?? '—' }}
+        </span>
+        <span class="dr-tag-card__time">{{ updatedLabel }}</span>
+      </template>
+      <template v-else>
+        <q-skeleton type="text" width="46px" />
+        <q-skeleton type="text" width="72px" />
+      </template>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { api } from 'src/boot/axios';
+import { computed, ref, watch } from 'vue';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { categoryFor } from 'src/composables/category';
+import { useQuasar } from 'quasar';
 
 export interface Tracker {
   id: number;
@@ -71,18 +131,95 @@ export interface Tracker {
   updated_at: string;
 }
 
-const props = defineProps<{ tracker: Tracker; active?: boolean }>();
-defineEmits<{ open: [id: number]; delete: [tracker: Tracker] }>();
+// No `tracker` => "new" card (create mode); a `tracker` => existing card (edit mode).
+const props = defineProps<{ tracker?: Tracker | null; active?: boolean }>();
+const emit = defineEmits<{
+  open: [id: number];
+  delete: [tracker: Tracker];
+  saved: [id: number];
+}>();
 
-const category = computed(() => categoryFor(props.tracker.name, props.tracker.desc));
+const $q = useQuasar();
+
+const isEdit = computed(() => props.tracker != null);
+
+const name = ref('');
+const desc = ref('');
+const editingName = ref(false);
+const editingDesc = ref(false);
+const saving = ref(false);
+
+// keep the editable copy in sync with the source tag (and reset after a save
+// causes the parent to hand back a fresh tracker)
+watch(
+  () => props.tracker,
+  (t) => {
+    name.value = t?.name ?? '';
+    desc.value = t?.desc ?? '';
+    editingName.value = false;
+    editingDesc.value = false;
+  },
+  { immediate: true },
+);
+
+const category = computed(() => categoryFor(name.value, desc.value));
+
+const dirty = computed(() => {
+  if (!isEdit.value) return !!(name.value.trim() || desc.value.trim());
+  return name.value !== (props.tracker?.name ?? '') || desc.value !== (props.tracker?.desc ?? '');
+});
 
 const updatedLabel = computed(() => {
+  if (!props.tracker) return '';
   try {
     return `${formatDistanceToNow(parseISO(props.tracker.updated_at))} ago`;
   } catch {
     return '';
   }
 });
+
+const onCardClick = () => {
+  if (props.tracker) emit('open', props.tracker.id);
+};
+const emitDelete = () => {
+  if (props.tracker) emit('delete', props.tracker);
+};
+
+const save = () => {
+  const n = name.value.trim();
+  if (!n || saving.value) return;
+  saving.value = true;
+  const payload = {
+    name: n,
+    desc: desc.value.trim(),
+    target_url: props.tracker?.target_url ?? null,
+    is_lost: props.tracker?.is_lost ?? false,
+    message: props.tracker?.message ?? '',
+  };
+  const req =
+    props.tracker != null
+      ? api.put(`/v1/trackers/${props.tracker.id}`, payload)
+      : api.post('/v1/trackers', payload);
+
+  req
+    .then(({ data }) => {
+      $q.notify({ color: 'positive', icon: 'check', message: isEdit.value ? 'Tag saved' : 'Tag created' });
+      const id = props.tracker != null ? props.tracker.id : (data as number);
+      if (!isEdit.value) {
+        name.value = '';
+        desc.value = '';
+      }
+      editingName.value = false;
+      editingDesc.value = false;
+      emit('saved', id);
+    })
+    .catch((err) => {
+      $q.notify({ color: 'negative', message: err?.response?.data?.msg || 'Could not save tag' });
+    })
+    .finally(() => {
+      saving.value = false;
+    });
+};
 </script>
 
 <style scoped lang="scss">
@@ -104,6 +241,17 @@ const updatedLabel = computed(() => {
     transform: translateY(-3px);
     box-shadow: var(--dr-shadow-lg);
     border-color: transparent;
+  }
+
+  // the create card isn't clickable-to-open, so it doesn't lift or use a pointer
+  &--new {
+    cursor: default;
+
+    &:hover {
+      transform: none;
+      box-shadow: var(--dr-shadow-sm);
+      border-color: var(--dr-border);
+    }
   }
 
   // Active ring drawn as an overlay pseudo-element so it paints *above* the
@@ -145,36 +293,88 @@ const updatedLabel = computed(() => {
     min-width: 0;
   }
 
-  &__menu {
+  &__action {
     flex: none;
     align-self: flex-start;
     margin-top: -2px;
-    color: var(--dr-faint);
   }
 
+  &__delete {
+    color: var(--dr-faint);
+
+    &:hover {
+      color: var(--dr-negative);
+    }
+  }
+
+  // NAME — label + pencil, i-beam cursor to hint that clicking edits it
   &__name {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--dr-text);
+    min-width: 0;
+    cursor: text;
   }
 
   &__name-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--dr-text);
   }
 
   &__desc {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
     margin-top: 1px;
-    font-size: 13px;
-    color: var(--dr-muted);
-    white-space: nowrap;
+    cursor: text;
+  }
+
+  &__desc-text {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--dr-muted);
+  }
+
+  &__name-text--empty,
+  &__desc-text--empty {
+    color: var(--dr-faint);
+  }
+
+  &__edit-hint {
+    flex: none;
+    color: var(--dr-muted);
+  }
+
+  // edit state: strip Quasar's dense-input chrome so the input lines up exactly
+  // with the label it replaced
+  &__input :deep(.q-field__control),
+  &__input :deep(.q-field__control-container),
+  &__input :deep(.q-field__native) {
+    height: auto;
+    min-height: 0;
+    padding: 0;
+  }
+
+  &__input--name :deep(input) {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.35;
+    color: var(--dr-text);
+  }
+
+  &__input--desc :deep(input) {
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--dr-muted);
   }
 
   &__sep {

@@ -26,8 +26,8 @@
 
         <template v-else>
           <div class="dr-tk__cards">
-            <!-- fillable create card, styled like a tag card -->
-            <NewTagCard v-if="!search" @created="onSaved" />
+            <!-- prop-less card = fillable create card -->
+            <TrackerCard v-if="!search" @saved="onSaved" />
             <TrackerCard
               v-for="t in trackers"
               :key="t.id"
@@ -35,6 +35,7 @@
               :active="t.id === selectedId"
               @open="select"
               @delete="confirmDelete"
+              @saved="onSaved"
             />
           </div>
 
@@ -196,7 +197,6 @@
 <script setup lang="ts">
 import TrackerCard, { type Tracker } from 'components/TrackerCard.vue';
 import TrackerDialog from 'components/TrackerDialog.vue';
-import NewTagCard from 'components/NewTagCard.vue';
 import QrDialog from 'components/QrDialog.vue';
 import { useQuasar } from 'quasar';
 import { api } from 'src/boot/axios';
