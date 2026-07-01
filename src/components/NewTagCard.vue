@@ -15,7 +15,9 @@
           class="dr-new-card__name"
           :disable="saving"
           @keyup.enter="create"
-        />
+        >
+          <template #prepend><q-icon name="edit" size="15px" /></template>
+        </q-input>
         <q-input
           v-model="desc"
           dense
@@ -25,7 +27,9 @@
           class="dr-new-card__desc"
           :disable="saving"
           @keyup.enter="create"
-        />
+        >
+          <template #prepend><q-icon name="edit" size="15px" /></template>
+        </q-input>
       </div>
     </q-card-section>
 
@@ -34,11 +38,11 @@
     <q-card-section class="dr-new-card__foot">
       <q-btn
         unelevated
-        dense
         color="primary"
         icon="check"
         label="Save"
         no-caps
+        padding="6px 16px"
         :loading="saving"
         :disable="!name.trim()"
         @click="create"
@@ -93,8 +97,8 @@ const create = () => {
 
 <style scoped lang="scss">
 // Mirrors TrackerCard's chrome so the create card sits in the list as one of
-// the family: dynamic category icon, borderless inputs that render exactly
-// like the card's name / desc text, and the save action in the footer.
+// the family: dynamic category icon, borderless inputs (a pencil marks each as
+// editable) sized like the card's name / desc, and the save action in footer.
 .dr-new-card {
   border: 1px solid var(--dr-border);
   border-radius: var(--dr-r-lg);
@@ -143,9 +147,12 @@ const create = () => {
     padding: 0;
   }
 
-  &__name :deep(.q-field__control-container),
-  &__desc :deep(.q-field__control-container) {
-    position: relative;
+  // pencil before the placeholder marks the field as editable
+  &__name :deep(.q-field__prepend),
+  &__desc :deep(.q-field__prepend) {
+    height: auto;
+    padding-right: 8px;
+    color: var(--dr-muted);
   }
 
   &__name :deep(input) {
@@ -162,37 +169,6 @@ const create = () => {
     color: var(--dr-muted);
   }
 
-  // Resting fake caret: a blinking bar at the very start of an empty field
-  // (a real <input> only shows a caret while focused). Hidden once focused
-  // (real caret takes over) or once the field has a value.
-  &__name :deep(.q-field__control-container)::after,
-  &__desc :deep(.q-field__control-container)::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 1.5px;
-    transform: translateY(-50%);
-    background: var(--dr-primary);
-    animation: dr-caret 1.06s steps(1, start) infinite;
-    pointer-events: none;
-  }
-
-  &__name :deep(.q-field__control-container)::after {
-    height: 17px;
-  }
-
-  &__desc :deep(.q-field__control-container)::after {
-    height: 14px;
-  }
-
-  &__name :deep(.q-field__control-container:has(input:focus))::after,
-  &__name :deep(.q-field__control-container:has(input:not(:placeholder-shown)))::after,
-  &__desc :deep(.q-field__control-container:has(input:focus))::after,
-  &__desc :deep(.q-field__control-container:has(input:not(:placeholder-shown)))::after {
-    display: none;
-  }
-
   &__sep {
     background: var(--dr-border);
   }
@@ -200,15 +176,7 @@ const create = () => {
   &__foot {
     display: flex;
     justify-content: flex-end;
-    // trimmed so the button-bearing footer matches the height of a normal
-    // card's slug/time footer
-    padding: 4px 16px;
-  }
-}
-
-@keyframes dr-caret {
-  50% {
-    opacity: 0;
+    padding: 8px 16px;
   }
 }
 </style>
