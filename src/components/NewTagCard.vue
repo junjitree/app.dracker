@@ -16,7 +16,7 @@
           :disable="saving"
           @keyup.enter="create"
         >
-          <template #prepend><q-icon name="edit" size="15px" /></template>
+          <template #append><q-icon name="edit" size="15px" /></template>
         </q-input>
         <q-input
           v-model="desc"
@@ -28,7 +28,7 @@
           :disable="saving"
           @keyup.enter="create"
         >
-          <template #prepend><q-icon name="edit" size="15px" /></template>
+          <template #append><q-icon name="edit" size="15px" /></template>
         </q-input>
       </div>
     </q-card-section>
@@ -148,11 +148,11 @@ const create = () => {
     padding: 0;
   }
 
-  // pencil before the placeholder marks the field as editable
-  &__name :deep(.q-field__prepend),
-  &__desc :deep(.q-field__prepend) {
+  // pencil after the input marks the field as editable
+  &__name :deep(.q-field__append),
+  &__desc :deep(.q-field__append) {
     height: auto;
-    padding-right: 8px;
+    padding-left: 8px;
     color: var(--dr-muted);
   }
 
