@@ -106,11 +106,21 @@ const updatedLabel = computed(() => {
     border-color: transparent;
   }
 
-  // Inset ring, drawn inside the card so the list's overflow can't clip it.
-  // !important is needed to beat Quasar's `.q-card--flat { box-shadow: none !important }`.
+  // Active ring drawn as an overlay pseudo-element so it paints *above* the
+  // full-bleed separator — a box-shadow ring would be covered by the separator
+  // at the edges, making the highlight look clipped at the divider line.
   &--active {
     border-color: transparent;
-    box-shadow: inset 0 0 0 2px var(--dr-primary) !important;
+  }
+
+  &--active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 2px var(--dr-primary);
+    pointer-events: none;
+    z-index: 1;
   }
 
   &__body {
