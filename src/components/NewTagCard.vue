@@ -62,23 +62,27 @@
           @blur="editingDesc = false"
         />
       </div>
-    </q-card-section>
 
-    <q-separator class="dr-new-card__sep" />
-
-    <q-card-section class="dr-new-card__foot">
       <q-btn
         flat
         round
         dense
         color="primary"
         icon="save"
+        class="dr-new-card__save"
         :loading="saving"
         :disable="!name.trim()"
         @click="create"
       >
         <q-tooltip>Save</q-tooltip>
       </q-btn>
+    </q-card-section>
+
+    <q-separator class="dr-new-card__sep" />
+
+    <q-card-section class="dr-new-card__foot">
+      <q-skeleton type="text" width="46px" />
+      <q-skeleton type="text" width="72px" />
     </q-card-section>
   </q-card>
 </template>
@@ -236,14 +240,22 @@ const create = () => {
     color: var(--dr-muted);
   }
 
+  // save icon sits top-right of the body, where a normal card's ⋯ menu lives
+  &__save {
+    flex: none;
+    align-self: flex-start;
+    margin-top: -2px;
+  }
+
   &__sep {
     background: var(--dr-border);
   }
 
   &__foot {
     display: flex;
-    justify-content: flex-end;
-    padding: 4px 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
   }
 }
 </style>
