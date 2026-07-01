@@ -130,11 +130,15 @@ const create = () => {
     gap: 1px; // matches the tag card's desc margin-top
   }
 
-  // strip all field chrome so only the text remains, sized like the card
+  // strip all field chrome (Quasar gives the dense native input a fixed 40px
+  // height) so only the text remains, sized like the card's name / desc
   &__name :deep(.q-field__control),
   &__desc :deep(.q-field__control),
+  &__name :deep(.q-field__control-container),
+  &__desc :deep(.q-field__control-container),
   &__name :deep(.q-field__native),
   &__desc :deep(.q-field__native) {
+    height: auto;
     min-height: 0;
     padding: 0;
   }
@@ -196,7 +200,9 @@ const create = () => {
   &__foot {
     display: flex;
     justify-content: flex-end;
-    padding: 10px 16px;
+    // trimmed so the button-bearing footer matches the height of a normal
+    // card's slug/time footer
+    padding: 4px 16px;
   }
 }
 
