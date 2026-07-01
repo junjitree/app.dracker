@@ -1,8 +1,8 @@
 <template>
   <q-card flat class="dr-new-card">
     <q-card-section class="dr-new-card__body">
-      <div class="dr-new-card__icon">
-        <q-icon name="add" size="24px" />
+      <div class="dr-new-card__icon" :style="{ background: `${cat.color}26`, color: cat.color }">
+        <q-icon :name="cat.icon" size="24px" />
       </div>
 
       <div class="dr-new-card__text">
@@ -10,9 +10,9 @@
           v-model="name"
           outlined
           dense
-          placeholder="New tag name"
+          label="New tag name"
           maxlength="80"
-          class="dr-new-card__name"
+          class="dr-new-card__field"
           :disable="saving"
           @keyup.enter="create"
         />
@@ -20,42 +20,38 @@
           v-model="desc"
           outlined
           dense
-          placeholder="Description (optional)"
+          label="Description (optional)"
           maxlength="120"
-          class="dr-new-card__desc"
+          class="dr-new-card__field"
           :disable="saving"
           @keyup.enter="create"
         />
       </div>
-
-      <q-btn
-        round
-        dense
-        unelevated
-        color="primary"
-        icon="check"
-        class="dr-new-card__go"
-        :loading="saving"
-        :disable="!name.trim()"
-        @click="create"
-      >
-        <q-tooltip>Create tag</q-tooltip>
-      </q-btn>
     </q-card-section>
 
     <q-separator class="dr-new-card__sep" />
 
     <q-card-section class="dr-new-card__foot">
-      <q-skeleton type="text" width="46px" />
-      <q-skeleton type="text" width="72px" />
+      <q-btn
+        unelevated
+        dense
+        color="primary"
+        icon="check"
+        label="Create tag"
+        no-caps
+        :loading="saving"
+        :disable="!name.trim()"
+        @click="create"
+      />
     </q-card-section>
   </q-card>
 </template>
 
 <script setup lang="ts">
 import { api } from 'src/boot/axios';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useQuasar } from 'quasar';
+import { categoryFor } from 'src/composables/category';
 
 const emit = defineEmits<{ created: [number] }>();
 
@@ -64,6 +60,9 @@ const $q = useQuasar();
 const name = ref('');
 const desc = ref('');
 const saving = ref(false);
+
+// preview the icon the saved tag will get, updating as you type
+const cat = computed(() => categoryFor(name.value, desc.value));
 
 const create = () => {
   const n = name.value.trim();
@@ -94,8 +93,8 @@ const create = () => {
 
 <style scoped lang="scss">
 // Mirrors TrackerCard's chrome so the create card sits in the list as one of
-// the family; the + icon and inline inputs mark it as the "add" card, and the
-// footer keeps the same slug/time layout with skeletons standing in.
+// the family: dynamic category icon on the left, labelled inputs, and the
+// save action in the footer where the slug/time normally live.
 .dr-new-card {
   border: 1px solid var(--dr-border);
   border-radius: var(--dr-r-lg);
@@ -118,8 +117,9 @@ const create = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--dr-primary-soft);
-    color: var(--dr-primary);
+    transition:
+      background 0.16s ease,
+      color 0.16s ease;
   }
 
   &__text {
@@ -130,22 +130,13 @@ const create = () => {
     gap: 8px;
   }
 
-  &__go {
-    flex: none;
-    align-self: center;
+  // trim the default dense field height so the inputs aren't so tall
+  &__field :deep(.q-field__control) {
+    min-height: 36px;
   }
 
-  // match a tag card's name / desc text sizes
-  &__name :deep(input) {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--dr-text);
-  }
-
-  &__desc :deep(input) {
-    font-size: 13px;
-    color: var(--dr-muted);
+  &__field :deep(.q-field__control::before) {
+    border-color: var(--dr-border);
   }
 
   &__sep {
@@ -154,8 +145,7 @@ const create = () => {
 
   &__foot {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 10px 16px;
   }
 }
