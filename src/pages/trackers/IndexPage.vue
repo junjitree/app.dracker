@@ -110,16 +110,30 @@
               </div>
               <q-space />
               <div class="dr-detail__actions">
-                <q-btn
-                  :outline="!detail.is_lost"
-                  :color="detail.is_lost ? 'negative' : 'primary'"
-                  :icon="detail.is_lost ? 'check_circle' : 'report'"
-                  :label="detail.is_lost ? 'Mark found' : 'Mark lost'"
-                  no-caps
-                  @click="toggleLost"
+                <q-toggle
+                  :model-value="detail.is_lost"
+                  label="Lost"
+                  color="negative"
+                  @update:model-value="toggleLost"
                 />
-                <q-btn outline color="primary" icon="edit" label="Edit" no-caps @click="openEdit" />
-                <q-btn outline color="secondary" icon="qr_code_2" label="QR" no-caps @click="openQr" />
+                <q-btn
+                  outline
+                  color="primary"
+                  icon="edit"
+                  label="Edit"
+                  no-caps
+                  class="dr-detail__act-btn"
+                  @click="openEdit"
+                />
+                <q-btn
+                  outline
+                  color="secondary"
+                  icon="qr_code_2"
+                  label="QR"
+                  no-caps
+                  class="dr-detail__act-btn"
+                  @click="openQr"
+                />
               </div>
             </div>
 
@@ -316,29 +330,30 @@ const openEdit = () => {
 const openQr = () => {
   qrDialog.value = true;
 };
-const toggleLost = () => {
+const toggleLost = (value: boolean) => {
   const d = detail.value;
   if (!d) return;
-  const nowLost = !d.is_lost;
+  const prev = d.is_lost ?? false;
+  d.is_lost = value; // optimistic — the slider reflects it right away
   api
     .put(`/v1/trackers/${d.id}`, {
       name: d.name,
       desc: d.desc,
       target_url: d.target_url ?? null,
-      is_lost: nowLost,
+      is_lost: value,
       message: d.message ?? '',
     })
     .then(() => {
       $q.notify({
-        color: nowLost ? 'warning' : 'positive',
-        icon: nowLost ? 'report' : 'check',
-        message: nowLost ? 'Tag marked as lost' : 'Tag marked as found',
+        color: value ? 'warning' : 'positive',
+        icon: value ? 'report' : 'check',
+        message: value ? 'Tag marked as lost' : 'Tag marked as found',
       });
-      loadDetail(d.id);
       load();
     })
     .catch((err) => {
       console.error(err);
+      d.is_lost = prev; // revert on failure
       $q.notify({ color: 'negative', message: 'Could not update' });
     });
 };
@@ -660,7 +675,8 @@ onMounted(load);
 
   &__actions {
     display: flex;
-    gap: 8px;
+    align-items: center;
+    gap: 10px;
 
     @media (max-width: 599px) {
       width: 100%;
@@ -669,6 +685,11 @@ onMounted(load);
         flex: 1;
       }
     }
+  }
+
+  // Edit + QR share a min width so they're the same size
+  &__act-btn {
+    min-width: 92px;
   }
 
   &__more {
