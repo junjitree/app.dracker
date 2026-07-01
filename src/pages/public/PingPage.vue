@@ -1,28 +1,31 @@
 <template>
-  <!-- SUCCESS -->
-  <div v-if="dandoru" class="dr-finder dr-finder--done">
-    <div class="dr-finder__badge dr-finder__badge--ok">
-      <q-icon name="check" size="40px" />
-    </div>
-    <h1 class="dr-finder__title">Location shared</h1>
-    <p class="dr-finder__text">
-      Thank you for helping! The owner has been notified of where this item is right now.
-    </p>
-    <p class="dr-finder__credit">You can close this page.</p>
-  </div>
+  <!-- BLANK: cover the whole layout while the browser asks for location and
+       while the location is being sent -->
+  <div v-if="locating || sending" class="dr-blank" />
 
-  <!-- LOCATING: a fully blank screen (covers the layout) while the browser's
-       own location prompt is shown -->
-  <div v-else-if="locating" class="dr-blank" />
-
-  <!-- FINDER -->
+  <!-- RESULT -->
   <div v-else class="dr-finder">
-    <!-- LOST: owner contact (only when the tag is marked lost) -->
+    <div class="dr-finder__badge" :class="{ 'dr-finder__badge--ok': sent }">
+      <q-icon :name="sent ? 'check' : 'location_off'" size="38px" />
+    </div>
+
+    <h1 class="dr-finder__title">{{ sent ? 'Location shared' : 'Location needed' }}</h1>
+    <p class="dr-finder__text">
+      <template v-if="sent"
+        >The owner has been notified of where this item is right now.</template
+      >
+      <template v-else
+        >Allow location access so the owner can be told where their item is. Nothing is posted
+        publicly.</template
+      >
+    </p>
+
+    <!-- LOST: how to reach the owner -->
     <div v-if="lost" class="dr-lost">
       <div class="dr-lost__badge"><q-icon name="report" size="30px" /></div>
-      <h1 class="dr-lost__title">This item is marked lost</h1>
+      <h2 class="dr-lost__title">This item is marked lost</h2>
       <p v-if="info.message" class="dr-lost__msg">“{{ info.message }}”</p>
-      <p class="dr-lost__help">Please reach the owner so they can get it back:</p>
+      <p class="dr-lost__help">Reach the owner so they can get it back:</p>
       <div class="dr-lost__contact">
         <a v-if="info.contact_phone" :href="`tel:${info.contact_phone}`" class="dr-lost__row">
           <q-icon name="call" size="20px" />
@@ -33,54 +36,50 @@
           <span>{{ info.contact_address }}</span>
         </div>
       </div>
-      <q-separator class="dr-lost__sep" />
-      <p class="dr-lost__or">You can also share your location below.</p>
     </div>
 
-    <div v-if="!lost" class="dr-finder__badge">
-      <q-icon name="my_location" size="36px" />
-    </div>
+    <!-- BLOCKED: let them re-open the location prompt -->
+    <q-btn
+      v-if="!sent"
+      unelevated
+      size="lg"
+      color="primary"
+      class="dr-finder__cta full-width"
+      icon="location_searching"
+      label="Enable location access"
+      no-caps
+      @click="requestLocation"
+    />
 
-    <h1 v-if="!lost" class="dr-finder__title">You found a tagged item</h1>
-    <p v-if="!lost" class="dr-finder__text">
-      Share where you are right now so the owner can come and recover it. Your location is sent
-      <strong>only to them</strong> — nothing is posted publicly.
-    </p>
-
-    <q-form class="dr-finder__form" @submit="onSubmit">
-      <q-input
-        v-model="note"
-        outlined
-        stack-label
-        type="textarea"
-        autogrow
-        bg-color="white"
-        label="Add a note for the owner (optional)"
-        :disable="loading"
-      />
-
-      <q-banner v-if="locationBlocked" rounded class="dr-finder__alert">
-        <template #avatar><q-icon name="location_off" color="warning" size="28px" /></template>
-        <strong>Location is blocked.</strong> Enable location sharing in your browser settings, then
-        refresh this page to send your position.
-      </q-banner>
-
-      <q-btn
-        type="submit"
-        unelevated
-        size="lg"
-        color="primary"
-        class="dr-finder__cta full-width"
-        :icon="coords ? 'send' : 'location_searching'"
-        :label="coords ? 'Send to owner' : 'Enable location access'"
-        no-caps
-        :loading="loading"
-      />
-
-      <p class="dr-finder__hint">
-        <q-icon name="lock" size="14px" /> Your location is used once, just for this report.
-      </p>
-    </q-form>
+    <!-- SENT: optional note so the finder can leave their phone / a meetup spot -->
+    <template v-if="sent">
+      <q-form v-if="!noteSent" class="dr-finder__form" @submit="sendNote">
+        <q-input
+          v-model="note"
+          outlined
+          stack-label
+          type="textarea"
+          autogrow
+          bg-color="white"
+          label="Add your phone or a meetup spot (optional)"
+          :disable="noteLoading"
+        />
+        <q-btn
+          type="submit"
+          unelevated
+          size="lg"
+          color="primary"
+          class="dr-finder__cta full-width"
+          icon="add_comment"
+          label="Send note"
+          no-caps
+          :loading="noteLoading"
+          :disable="!note.trim()"
+        />
+      </q-form>
+      <p v-else class="dr-finder__credit">Note sent — thank you!</p>
+      <p class="dr-finder__credit">You can close this page.</p>
+    </template>
   </div>
 </template>
 
@@ -101,13 +100,17 @@ interface PublicInfo {
 const $q = useQuasar();
 const route = useRoute();
 
-const dandoru = ref(false);
-const loading = ref(false);
-const locationBlocked = ref(false);
-const locating = ref(true);
-const note = ref('');
 const slug = ref(route.params.slug?.toString() || '');
+
+const locating = ref(true);
+const sending = ref(false);
+const sent = ref(false);
 const coords = ref<{ lat: number; lon: number } | null>(null);
+const pingId = ref<number | null>(null);
+
+const note = ref('');
+const noteLoading = ref(false);
+const noteSent = ref(false);
 
 const lost = ref(false);
 const info = ref<PublicInfo>({
@@ -118,24 +121,22 @@ const info = ref<PublicInfo>({
   contact_address: null,
 });
 
-// Fire the browser's native location prompt. While it's pending the page stays
-// blank; once the finder answers we render the rest.
+// Fire the browser's native location prompt. The page stays blank until the
+// finder answers; once we have a fix we send the ping straight away.
 function requestLocation() {
   if (!navigator.geolocation) {
     locating.value = false;
-    locationBlocked.value = true;
     return;
   }
   locating.value = true;
-  locationBlocked.value = false;
   navigator.geolocation.getCurrentPosition(
     (position) => {
       coords.value = { lat: position.coords.latitude, lon: position.coords.longitude };
       locating.value = false;
+      sendPing();
     },
     (err) => {
       coords.value = null;
-      locationBlocked.value = true;
       locating.value = false;
       console.error(err);
     },
@@ -143,31 +144,49 @@ function requestLocation() {
   );
 }
 
-const onSubmit = () => {
-  // No fix yet (blocked/denied) — re-open the browser prompt instead of sending.
-  if (!coords.value) {
-    requestLocation();
-    return;
-  }
-
-  loading.value = true;
+// The location ping always goes first (no note), so the owner gets it even if
+// the finder adds nothing more.
+function sendPing() {
+  if (!coords.value) return;
+  sending.value = true;
   api
-    .post('v1/ping', {
+    .post<number>('v1/ping', {
       slug: slug.value,
       lat: coords.value.lat,
       lon: coords.value.lon,
-      note: note.value,
+      note: '',
     })
-    .then(() => {
-      dandoru.value = true;
+    .then(({ data }) => {
+      pingId.value = data;
+      sent.value = true;
     })
     .catch((err) => {
-      $q.notify({ color: 'negative', message: err.response?.data?.msg || 'Could not send ping' });
+      $q.notify({ color: 'negative', message: err.response?.data?.msg || 'Could not share location' });
     })
     .finally(() => {
-      loading.value = false;
+      sending.value = false;
     });
-};
+}
+
+// Optional follow-up: attach the finder's note to the ping just created.
+function sendNote() {
+  if (pingId.value == null || !note.value.trim()) {
+    noteSent.value = true;
+    return;
+  }
+  noteLoading.value = true;
+  api
+    .put(`v1/ping/${pingId.value}/note`, { note: note.value.trim() })
+    .then(() => {
+      noteSent.value = true;
+    })
+    .catch((err) => {
+      $q.notify({ color: 'negative', message: err.response?.data?.msg || 'Could not add note' });
+    })
+    .finally(() => {
+      noteLoading.value = false;
+    });
+}
 
 onMounted(() => {
   // ask for location immediately, before the page renders
@@ -251,16 +270,6 @@ onMounted(() => {
       font-size: 15px;
     }
   }
-
-  &__sep {
-    margin: 20px 0 12px;
-  }
-
-  &__or {
-    font-size: 13px;
-    color: var(--dr-faint);
-    margin: 0;
-  }
 }
 
 // Full-viewport blank cover shown while the native location prompt is up,
@@ -286,7 +295,7 @@ onMounted(() => {
     justify-content: center;
     color: #fff;
     background: var(--dr-gradient);
-    box-shadow: 0 12px 28px rgba(79, 110, 247, 0.4);
+    box-shadow: 0 12px 28px rgba(122, 162, 247, 0.4);
 
     &--ok {
       background: linear-gradient(135deg, #16b981 0%, #5fe3b3 100%);
@@ -318,33 +327,16 @@ onMounted(() => {
     text-align: left;
   }
 
-  &__alert {
-    background: #fff7ed;
-    color: #9a3412;
-    border: 1px solid #fed7aa;
-    border-radius: var(--dr-r);
-  }
-
   &__cta {
     height: 56px;
     font-size: 16px;
     border-radius: var(--dr-r);
   }
 
-  &__hint {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 12.5px;
-    color: var(--dr-faint);
-    margin: 2px 0 0;
-  }
-
   &__credit {
     font-size: 13px;
     color: var(--dr-faint);
-    margin: 4px 0 0;
+    margin: 10px 0 0;
   }
 }
 </style>
