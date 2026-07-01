@@ -3,7 +3,7 @@
     <div class="dr-tk__layout">
       <!-- LEFT — list -->
       <aside class="dr-tk__list" :class="{ 'dr-tk__pane--mobile-hidden': isMobile && selectedId }">
-        <div class="row q-col-gutter-sm items-center dr-tk__search">
+        <div class="row q-col-gutter-x-sm items-center dr-tk__search">
           <div class="col-8">
             <q-input
               v-model="search"
@@ -454,6 +454,9 @@ onMounted(load);
       top: 0;
       z-index: 1;
       background: var(--dr-bg);
+      // drop the row to the detail card's header line: the card insets its
+      // header by its border (1px) + padding (20px).
+      padding-top: 21px;
     }
   }
 
