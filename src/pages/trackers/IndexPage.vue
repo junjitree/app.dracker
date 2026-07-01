@@ -311,7 +311,12 @@ const loadDetail = (id: number) => {
 };
 
 const select = (id: number) => {
-  router.replace({ query: { ...route.query, id } }).catch((err) => console.error(err));
+  // First selection from an id-less URL gets its own history entry, so Back
+  // returns to the empty list. Switching between tags (id already present)
+  // replaces, to avoid stacking one history entry per tag.
+  const location = { query: { ...route.query, id } };
+  const nav = route.query.id === undefined ? router.push(location) : router.replace(location);
+  nav.catch((err) => console.error(err));
 };
 const back = () => {
   const q = { ...route.query };
