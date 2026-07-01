@@ -159,7 +159,9 @@ function logout() {
 .dr-header {
   background: var(--dr-surface);
   color: var(--dr-text);
-  border-bottom: 1px solid var(--dr-border);
+  // Quasar's dark theme sets a bright border-color on .q-header (more specific
+  // than this rule), which showed as a white line — force our subtle divider.
+  border-bottom: 1px solid var(--dr-border) !important;
   box-shadow: none;
 }
 
