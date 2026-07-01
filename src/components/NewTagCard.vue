@@ -42,7 +42,8 @@
         icon="check"
         label="Save"
         no-caps
-        padding="6px 16px"
+        padding="4px 16px"
+        class="dr-new-card__save"
         :loading="saving"
         :disable="!name.trim()"
         @click="create"
@@ -176,7 +177,17 @@ const create = () => {
   &__foot {
     display: flex;
     justify-content: flex-end;
-    padding: 8px 16px;
+    padding: 5px 16px;
+  }
+
+  // keep the label's side padding but shrink the button's height + icon so the
+  // footer matches a normal card's slug/time footer height
+  &__save {
+    font-size: 13px;
+
+    :deep(.q-icon) {
+      font-size: 16px;
+    }
   }
 }
 </style>
