@@ -447,7 +447,7 @@ onMounted(load);
   }
 
   &__search {
-    margin-bottom: 14px;
+    margin-bottom: 12px; // match the 12px gap between tag cards
 
     @media (min-width: 1024px) {
       position: sticky;
