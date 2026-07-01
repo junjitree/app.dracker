@@ -12,7 +12,7 @@
     <div class="dr-tk__layout">
       <!-- LEFT — list -->
       <aside class="dr-tk__list" :class="{ 'dr-tk__pane--mobile-hidden': isMobile && selectedId }">
-        <div class="row q-col-gutter-sm items-stretch dr-tk__search">
+        <div class="row q-col-gutter-sm items-center dr-tk__search">
           <div class="col-8">
             <q-input
               v-model="search"
@@ -33,7 +33,8 @@
               icon="add"
               label="New tag"
               no-caps
-              class="full-width full-height"
+              padding="8px 8px"
+              class="full-width dr-tk__new-btn"
               @click="openCreate"
             />
           </div>
@@ -492,6 +493,15 @@ onMounted(load);
       top: 0;
       z-index: 1;
       background: var(--dr-bg);
+    }
+  }
+
+  &__new-btn {
+    min-height: 40px; // match the dense search input
+
+    // keep the icon + label on one line in the narrow col-4
+    :deep(.q-btn__content) {
+      flex-wrap: nowrap;
     }
   }
 
