@@ -8,8 +8,8 @@
       <div class="dr-new-card__text">
         <q-input
           v-model="name"
+          outlined
           dense
-          borderless
           placeholder="New tag name"
           maxlength="80"
           class="dr-new-card__name"
@@ -18,8 +18,8 @@
         />
         <q-input
           v-model="desc"
+          outlined
           dense
-          borderless
           placeholder="Description (optional)"
           maxlength="120"
           class="dr-new-card__desc"
@@ -41,6 +41,13 @@
       >
         <q-tooltip>Create tag</q-tooltip>
       </q-btn>
+    </q-card-section>
+
+    <q-separator class="dr-new-card__sep" />
+
+    <q-card-section class="dr-new-card__foot">
+      <q-skeleton type="text" width="46px" />
+      <q-skeleton type="text" width="72px" />
     </q-card-section>
   </q-card>
 </template>
@@ -87,17 +94,14 @@ const create = () => {
 
 <style scoped lang="scss">
 // Mirrors TrackerCard's chrome so the create card sits in the list as one of
-// the family; the + icon and inline inputs mark it as the "add" card.
+// the family; the + icon and inline inputs mark it as the "add" card, and the
+// footer keeps the same slug/time layout with skeletons standing in.
 .dr-new-card {
   border: 1px solid var(--dr-border);
   border-radius: var(--dr-r-lg);
+  overflow: hidden;
   background: var(--dr-surface);
   box-shadow: var(--dr-shadow-sm);
-  transition: border-color 0.16s ease;
-
-  &:focus-within {
-    border-color: var(--dr-primary);
-  }
 
   &__body {
     display: flex;
@@ -121,6 +125,9 @@ const create = () => {
   &__text {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   &__go {
@@ -128,24 +135,28 @@ const create = () => {
     align-self: center;
   }
 
-  // seamless inline inputs, sized to match a tag card's name / desc
-  :deep(.q-field__control) {
-    min-height: unset;
-    padding: 0;
-  }
-
+  // match a tag card's name / desc text sizes
   &__name :deep(input) {
     font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--dr-text);
-    padding: 2px 0;
   }
 
   &__desc :deep(input) {
     font-size: 13px;
     color: var(--dr-muted);
-    padding: 1px 0;
+  }
+
+  &__sep {
+    background: var(--dr-border);
+  }
+
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
   }
 }
 </style>
