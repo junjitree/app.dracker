@@ -37,17 +37,17 @@
 
     <q-card-section class="dr-new-card__foot">
       <q-btn
-        unelevated
+        flat
+        round
+        dense
         color="primary"
-        icon="check"
-        label="Save"
-        no-caps
-        padding="4px 16px"
-        class="dr-new-card__save"
+        icon="save"
         :loading="saving"
         :disable="!name.trim()"
         @click="create"
-      />
+      >
+        <q-tooltip>Save</q-tooltip>
+      </q-btn>
     </q-card-section>
   </q-card>
 </template>
@@ -177,17 +177,7 @@ const create = () => {
   &__foot {
     display: flex;
     justify-content: flex-end;
-    padding: 5px 16px;
-  }
-
-  // keep the label's side padding but shrink the button's height + icon so the
-  // footer matches a normal card's slug/time footer height
-  &__save {
-    font-size: 13px;
-
-    :deep(.q-icon) {
-      font-size: 16px;
-    }
+    padding: 4px 12px;
   }
 }
 </style>
