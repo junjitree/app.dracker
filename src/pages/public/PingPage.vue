@@ -54,16 +54,17 @@
     <!-- SENT: optional note so the finder can leave their phone / a meetup spot -->
     <template v-if="sent">
       <q-form v-if="!noteSent" class="dr-finder__form" @submit="sendNote">
-        <q-input
-          v-model="note"
-          outlined
-          stack-label
-          type="textarea"
-          autogrow
-          bg-color="white"
-          label="Add your phone or a meetup spot (optional)"
-          :disable="noteLoading"
-        />
+        <div class="dr-finder__field">
+          <div class="dr-finder__label">Add your phone or a meetup spot (optional)</div>
+          <q-input
+            v-model="note"
+            outlined
+            type="textarea"
+            autogrow
+            placeholder="e.g. 0917 123 4567 · meet at the café"
+            :disable="noteLoading"
+          />
+        </div>
         <q-btn
           type="submit"
           unelevated
@@ -324,6 +325,14 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    text-align: left;
+  }
+
+  &__label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dr-text);
+    margin-bottom: 8px;
     text-align: left;
   }
 
