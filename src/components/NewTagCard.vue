@@ -10,7 +10,7 @@
           v-model="name"
           dense
           borderless
-          placeholder="New tag name"
+          placeholder="Tag name"
           maxlength="80"
           class="dr-new-card__name"
           :disable="saving"
