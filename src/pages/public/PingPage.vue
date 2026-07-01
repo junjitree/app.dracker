@@ -5,27 +5,26 @@
 
   <!-- RESULT -->
   <div v-else class="dr-finder">
-    <div class="dr-finder__badge" :class="{ 'dr-finder__badge--ok': sent }">
-      <q-icon :name="sent ? 'check' : 'location_off'" size="38px" />
+    <!-- sent: slim confirmation pill -->
+    <div v-if="sent" class="dr-finder__done">
+      <q-icon name="check_circle" color="positive" size="20px" />
+      <span>Location shared with the owner</span>
     </div>
 
-    <h1 class="dr-finder__title">{{ sent ? 'Location shared' : 'Location needed' }}</h1>
-    <p class="dr-finder__text">
-      <template v-if="sent"
-        >The owner has been notified of where this item is right now.</template
-      >
-      <template v-else
-        >Allow location access so the owner can be told where their item is. Nothing is posted
-        publicly.</template
-      >
-    </p>
+    <!-- blocked: prominent prompt -->
+    <template v-else>
+      <div class="dr-finder__badge"><q-icon name="location_off" size="34px" /></div>
+      <h1 class="dr-finder__title">Location needed</h1>
+      <p class="dr-finder__text">
+        Allow location access so the owner can be told where their item is.
+      </p>
+    </template>
 
     <!-- LOST: how to reach the owner -->
     <div v-if="lost" class="dr-lost">
-      <div class="dr-lost__badge"><q-icon name="report" size="30px" /></div>
+      <div class="dr-lost__badge"><q-icon name="report" size="22px" /></div>
       <h2 class="dr-lost__title">This item is marked lost</h2>
       <p v-if="info.message" class="dr-lost__msg">“{{ info.message }}”</p>
-      <p class="dr-lost__help">Reach the owner so they can get it back:</p>
       <div class="dr-lost__contact">
         <a v-if="info.contact_phone" :href="`tel:${info.contact_phone}`" class="dr-lost__row">
           <q-icon name="call" size="20px" />
@@ -208,24 +207,24 @@ onMounted(() => {
   border: 1px solid var(--dr-border);
   border-radius: var(--dr-r-lg);
   background: var(--dr-surface);
-  padding: 24px 20px;
-  margin-bottom: 26px;
+  padding: 16px 16px;
+  margin-bottom: 18px;
 
   &__badge {
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    margin: 0 auto 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    margin: 0 auto 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     background: linear-gradient(135deg, #f7768e 0%, #ff9e64 100%);
-    box-shadow: 0 10px 24px rgba(247, 118, 142, 0.4);
+    box-shadow: 0 8px 18px rgba(247, 118, 142, 0.35);
   }
 
   &__title {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 800;
     letter-spacing: -0.02em;
     margin: 0 0 8px;
@@ -234,16 +233,10 @@ onMounted(() => {
 
   &__msg {
     font-style: italic;
-    font-size: 15px;
-    color: var(--dr-text);
-    margin: 0 auto 12px;
-    max-width: 34ch;
-  }
-
-  &__help {
     font-size: 14px;
-    color: var(--dr-muted);
-    margin: 0 0 14px;
+    color: var(--dr-text);
+    margin: 0 auto 10px;
+    max-width: 34ch;
   }
 
   &__contact {
@@ -285,6 +278,21 @@ onMounted(() => {
 .dr-finder {
   text-align: center;
   padding: 8px 4px 4px;
+
+  // slim "location shared" confirmation (keeps the sent screen compact)
+  &__done {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dr-text);
+    padding: 10px 16px;
+    margin-bottom: 18px;
+    background: var(--dr-surface-2);
+    border-radius: var(--dr-r-pill);
+  }
 
   &__badge {
     width: 88px;
