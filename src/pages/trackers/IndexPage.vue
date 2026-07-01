@@ -454,9 +454,6 @@ onMounted(load);
       top: 0;
       z-index: 1;
       background: var(--dr-bg);
-      // drop the row to the detail card's header line: the card insets its
-      // header by its border (1px) + padding (20px).
-      padding-top: 21px;
     }
   }
 
