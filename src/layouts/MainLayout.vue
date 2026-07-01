@@ -183,15 +183,25 @@ function logout() {
 }
 
 .dr-theme {
-  width: 46px;
-
-  :deep(.q-field__prepend) {
-    color: var(--dr-muted);
-    padding-right: 0;
-  }
+  // Shrink-wrap the field around the toggle icon. With `hide-selected` the
+  // select otherwise reserved empty value space, leaving a large gap between
+  // the icon and the avatar.
+  width: auto;
 
   :deep(.q-field__control) {
     cursor: pointer;
+    padding: 0;
+  }
+
+  :deep(.q-field__prepend) {
+    color: var(--dr-muted);
+    padding: 0;
+  }
+
+  :deep(.q-field__control-container) {
+    width: 0;
+    min-width: 0;
+    padding: 0;
   }
 }
 
