@@ -176,7 +176,7 @@
                 dense-toggle
                 class="dr-detail__more"
               >
-                <q-list separator>
+                <q-list separator class="dr-detail__ping-list">
                   <q-item
                     v-for="p in pings"
                     :key="p.id"
@@ -690,6 +690,13 @@ onMounted(load);
     border: 1px solid var(--dr-border);
     border-radius: var(--dr-r);
     overflow: hidden;
+  }
+
+  // cap the expanded ping history so a long list scrolls instead of
+  // stretching the detail pane; ~5 rows before it scrolls.
+  &__ping-list {
+    max-height: 280px;
+    overflow-y: auto;
   }
 
   &__ping--active {
