@@ -8,21 +8,21 @@
       <div class="dr-new-card__text">
         <q-input
           v-model="name"
-          outlined
           dense
-          label="New tag name"
+          borderless
+          placeholder="New tag name"
           maxlength="80"
-          class="dr-new-card__field"
+          class="dr-new-card__name"
           :disable="saving"
           @keyup.enter="create"
         />
         <q-input
           v-model="desc"
-          outlined
           dense
-          label="Description (optional)"
+          borderless
+          placeholder="Description (optional)"
           maxlength="120"
-          class="dr-new-card__field"
+          class="dr-new-card__desc"
           :disable="saving"
           @keyup.enter="create"
         />
@@ -37,7 +37,7 @@
         dense
         color="primary"
         icon="check"
-        label="Create tag"
+        label="Save"
         no-caps
         :loading="saving"
         :disable="!name.trim()"
@@ -93,8 +93,8 @@ const create = () => {
 
 <style scoped lang="scss">
 // Mirrors TrackerCard's chrome so the create card sits in the list as one of
-// the family: dynamic category icon on the left, labelled inputs, and the
-// save action in the footer where the slug/time normally live.
+// the family: dynamic category icon on the left, seamless (borderless) name /
+// desc inputs styled like the card text, and the save action in the footer.
 .dr-new-card {
   border: 1px solid var(--dr-border);
   border-radius: var(--dr-r-lg);
@@ -127,16 +127,28 @@ const create = () => {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 2px;
   }
 
-  // trim the default dense field height so the inputs aren't so tall
-  &__field :deep(.q-field__control) {
-    min-height: 36px;
+  // seamless inputs — no border, caret sits left of the placeholder
+  &__name :deep(.q-field__control),
+  &__desc :deep(.q-field__control) {
+    min-height: unset;
+    padding: 0;
   }
 
-  &__field :deep(.q-field__control::before) {
-    border-color: var(--dr-border);
+  &__name :deep(input) {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--dr-text);
+    padding: 2px 0;
+  }
+
+  &__desc :deep(input) {
+    font-size: 13px;
+    color: var(--dr-muted);
+    padding: 1px 0;
   }
 
   &__sep {
