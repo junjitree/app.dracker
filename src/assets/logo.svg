@@ -22,6 +22,13 @@
       <rect x="303.08" y="195.24" width="25.68" height="25.68" rx="8"/>
       <rect x="170.40" y="302.24" width="51.36" height="51.36" rx="14" fill="none" stroke="url(#stroke)" stroke-width="10"/>
       <rect x="183.24" y="315.08" width="25.68" height="25.68" rx="8"/>
+
+      <!-- a few larger data modules to hint at the QR without the clutter -->
+      <rect x="252.23" y="252.23" width="25.68" height="25.68" rx="7"/>
+      <rect x="320.71" y="252.23" width="25.68" height="25.68" rx="7"/>
+      <rect x="286.47" y="286.47" width="25.68" height="25.68" rx="7"/>
+      <rect x="252.23" y="320.71" width="25.68" height="25.68" rx="7"/>
+      <rect x="320.71" y="320.71" width="25.68" height="25.68" rx="7"/>
     </g>
   </g>
 </svg>
