@@ -3,7 +3,7 @@
     <q-header class="dr-header">
       <q-toolbar class="dr-toolbar">
         <router-link to="/trackers" class="dr-brand">
-          <img src="~assets/logo.svg" alt="Dracker" width="28" height="28" />
+          <img src="~assets/logo.svg" alt="Dracker" width="36" height="36" />
           <span class="dr-brand__name">{{ appName }}</span>
         </router-link>
 
