@@ -1,4 +1,4 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="340" height="340" viewBox="86 90 340 340" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="stroke" x1="140" y1="120" x2="380" y2="400" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#7aa2f7"/>
@@ -6,15 +6,12 @@
     </linearGradient>
   </defs>
 
-  <!-- light tile (matches the app's "QR over white" look) -->
-  <rect width="512" height="512" rx="112" fill="#ffffff"/>
-
   <g>
     <!-- tracker tag body -->
     <circle cx="256" cy="268" r="150" stroke="url(#stroke)" stroke-width="10"/>
 
     <!-- top attachment ring -->
-    <circle cx="256" cy="118" r="17" fill="#ffffff" stroke="url(#stroke)" stroke-width="10"/>
+    <circle cx="256" cy="118" r="17" fill="none" stroke="url(#stroke)" stroke-width="10"/>
 
     <!-- simplified QR: three finder patterns + a few larger data modules -->
     <g fill="url(#stroke)">
